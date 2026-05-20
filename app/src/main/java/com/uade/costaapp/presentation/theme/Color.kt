@@ -1,4 +1,4 @@
-package com.uade.costaapp.ui.theme
+package com.uade.costaapp.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 
