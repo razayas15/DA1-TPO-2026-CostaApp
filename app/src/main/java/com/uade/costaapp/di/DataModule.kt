@@ -40,7 +40,8 @@ object DataModule {
     @Singleton
     fun provideRetrofit(): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("https://raw.githubusercontent.com/razayas15/costaapp-api/refs/heads/main/")
+            // BASE_URL ajustada para apuntar al entorno servido por GitHub Pages
+            .baseUrl("https://razayas15.github.io/DA1-TPO-2026-CostaApp/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
