@@ -1,23 +1,32 @@
 package com.uade.costaapp.presentation.auth
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Button
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -41,49 +50,81 @@ fun LoginScreen(
         }
     }
 
+    val darkBlue = Color(0xFF0A1D37)
+    val lightGray = Color(0xFFF5F6F8)
+    val borderColor = Color(0xFFE0E0E0)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(lightGray)
             .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        // Ícono de ingreso
+        Box(
+            modifier = Modifier
+                .size(72.dp)
+                .background(darkBlue, RoundedCornerShape(16.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                contentDescription = "Login Icon",
+                tint = Color.White,
+                modifier = Modifier.size(40.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
         Text(
-            text = "Bienvenido a CostaApp",
-            fontSize = 28.sp,
+            text = "Bienvenido",
+            fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            color = darkBlue
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Descubre tu próximo destino exclusivo",
+            text = "Iniciá sesión en tu cuenta",
             fontSize = 16.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = Color.Gray
         )
 
         Spacer(modifier = Modifier.height(48.dp))
 
-        Button(
-            onClick = {
-                viewModel.signInWithGoogle(context, WEB_CLIENT_ID)
-            },
-            enabled = uiState !is AuthUiState.Loading,
-            modifier = Modifier.height(56.dp)
+        // Botón único de Google
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .border(1.dp, borderColor, RoundedCornerShape(12.dp))
+                .background(Color.White)
+                .clickable(enabled = uiState !is AuthUiState.Loading) {
+                    viewModel.signInWithGoogle(context, WEB_CLIENT_ID)
+                },
+            contentAlignment = Alignment.Center
         ) {
             if (uiState is AuthUiState.Loading) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary,
+                        color = darkBlue,
                         strokeWidth = 2.dp
                     )
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text("Conectando con Google...")
+                    Text("Conectando...", color = darkBlue, fontWeight = FontWeight.Medium)
                 }
             } else {
-                Text("Iniciar sesión con Google", fontSize = 16.sp)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("G", color = Color.Red, fontWeight = FontWeight.Bold, fontSize = 20.sp)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text("Continuar con Google", color = darkBlue, fontWeight = FontWeight.Medium, fontSize = 16.sp)
+                }
             }
         }
 
@@ -91,7 +132,7 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(24.dp))
             Text(
                 text = (uiState as AuthUiState.Error).message,
-                color = MaterialTheme.colorScheme.error,
+                color = Color.Red,
                 fontSize = 14.sp
             )
         }
