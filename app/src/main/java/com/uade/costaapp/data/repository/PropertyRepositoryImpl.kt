@@ -40,7 +40,7 @@ class PropertyRepositoryImpl @Inject constructor(
         return dao.getFavorites()
     }
 
-    override suspend fun getPropertyById(id: String): PropertyEntity? {
+    override fun getPropertyById(id: String): Flow<PropertyEntity?> {
         return dao.getPropertyById(id)
     }
 

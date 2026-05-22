@@ -40,6 +40,7 @@ val LightBlueAccent = Color(0xFFE3F2FD)
 @Composable
 fun HomeScreen(
     onNavigateToLogin: () -> Unit,
+    onNavigateToDetail: (String) -> Unit,
     authViewModel: AuthViewModel = hiltViewModel(),
     homeViewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -80,7 +81,7 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(properties) { property ->
-                    PropertyCard(property = property)
+                    PropertyCard(property = property, onClick = { onNavigateToDetail(it) })
                 }
             }
         }
@@ -193,12 +194,14 @@ fun FilterChip(text: String) {
 }
 
 @Composable
-fun PropertyCard(property: PropertyEntity) {
+fun PropertyCard(property: PropertyEntity, onClick: (String) -> Unit) {
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick(property.id) }
     ) {
         Column {
             Box(

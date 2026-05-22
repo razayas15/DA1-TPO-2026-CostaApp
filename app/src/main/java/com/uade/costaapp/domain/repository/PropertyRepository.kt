@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 interface PropertyRepository {
     fun getAllProperties(): Flow<List<PropertyEntity>>
     fun getFavorites(): Flow<List<PropertyEntity>>
-    suspend fun getPropertyById(id: String): PropertyEntity?
+    fun getPropertyById(id: String): Flow<PropertyEntity?>
     suspend fun refreshProperties()
     suspend fun updateFavorite(id: String, isFavorite: Boolean)
 }

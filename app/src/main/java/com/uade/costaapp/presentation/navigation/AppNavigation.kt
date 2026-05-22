@@ -1,10 +1,13 @@
 package com.uade.costaapp.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.uade.costaapp.presentation.auth.LoginScreen
+import com.uade.costaapp.presentation.detail.PropertyDetailScreen
 import com.uade.costaapp.presentation.home.HomeScreen
 import com.uade.costaapp.presentation.splash.SplashScreen
 
@@ -44,7 +47,19 @@ fun AppNavigation() {
                     navController.navigate("login") {
                         popUpTo("home") { inclusive = true }
                     }
+                },
+                onNavigateToDetail = { propertyId ->
+                    navController.navigate("detail/$propertyId")
                 }
+            )
+        }
+
+        composable(
+            route = "detail/{propertyId}",
+            arguments = listOf(navArgument("propertyId") { type = NavType.StringType })
+        ) {
+            PropertyDetailScreen(
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }

@@ -21,5 +21,5 @@ interface PropertyDao {
     fun getFavorites(): Flow<List<PropertyEntity>>
 
     @Query("SELECT * FROM properties WHERE id = :id")
-    suspend fun getPropertyById(id: String): PropertyEntity?
+    fun getPropertyById(id: String): Flow<PropertyEntity?>
 }
