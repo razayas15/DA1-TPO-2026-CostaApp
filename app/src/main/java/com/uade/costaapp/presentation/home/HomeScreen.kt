@@ -3,18 +3,23 @@ package com.uade.costaapp.presentation.home
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -22,6 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
 import com.uade.costaapp.data.local.entity.PropertyEntity
 import com.uade.costaapp.presentation.auth.AuthViewModel
@@ -34,27 +40,21 @@ val LightBlueAccent = Color(0xFFE3F2FD)
 @Composable
 fun HomeScreen(
     onNavigateToLogin: () -> Unit,
-    authViewModel: AuthViewModel = hiltViewModel()
+    authViewModel: AuthViewModel = hiltViewModel(),
+    homeViewModel: HomeViewModel = hiltViewModel()
 ) {
-    // MOCK temporal para visualizar la UI según el diseño.
-    // En la siguiente fase conectaremos el flujo de Room
-    val properties = listOf(
-        PropertyEntity(
-            id = "1", title = "Casa moderna cerca de Av. Bunge", description = "",
-            price = 250000.0, currency = "USD", zone = "Centro", rooms = 4, surface = 180.0,
-            bathrooms = 2, latitude = 0.0, longitude = 0.0, operationType = "Venta",
-            imageUrl = "https://picsum.photos/seed/1/800/600", contactPhone = "", lastUpdated = 0L
-        ),
-        PropertyEntity(
-            id = "2", title = "Departamento moderno en Las Gaviotas", description = "",
-            price = 120000.0, currency = "USD", zone = "Las Gaviotas", rooms = 2, surface = 65.0,
-            bathrooms = 1, latitude = 0.0, longitude = 0.0, operationType = "Alquiler",
-            imageUrl = "https://picsum.photos/seed/2/800/600", contactPhone = "", lastUpdated = 0L
-        )
-    )
+    // Escucha reactivamente la base de datos (Room)
+    val properties by homeViewModel.properties.collectAsStateWithLifecycle()
 
     Scaffold(
-        topBar = { HomeHeader() },
+        topBar = { 
+            HomeHeader(
+                onLogoutClick = {
+                    authViewModel.signOut()
+                    onNavigateToLogin()
+                }
+            ) 
+        },
         bottomBar = { HomeBottomNavigation() },
         containerColor = LightGrayBackground
     ) { innerPadding ->
@@ -64,7 +64,7 @@ fun HomeScreen(
                 .padding(innerPadding)
         ) {
             HomeSearchBar()
-            HomeFilters()
+            HomeFilters(propertiesCount = properties.size)
             
             Text(
                 text = "Recomendamos para vos",
@@ -87,7 +87,9 @@ fun HomeScreen(
 }
 
 @Composable
-fun HomeHeader() {
+fun HomeHeader(onLogoutClick: () -> Unit) {
+    var showMenu by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -108,15 +110,32 @@ fun HomeHeader() {
             Spacer(modifier = Modifier.width(12.dp))
             Text("CostaApp", color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         }
-        Icon(
-            imageVector = Icons.Default.Person,
-            contentDescription = "Profile",
-            tint = DarkBlue,
-            modifier = Modifier
-                .size(36.dp)
-                .background(Color.White, CircleShape)
-                .padding(6.dp)
-        )
+        
+        Box {
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = "Profile",
+                tint = DarkBlue,
+                modifier = Modifier
+                    .size(36.dp)
+                    .background(Color.White, CircleShape)
+                    .padding(6.dp)
+                    .clickable { showMenu = true }
+            )
+            DropdownMenu(
+                expanded = showMenu,
+                onDismissRequest = { showMenu = false },
+                modifier = Modifier.background(Color.White)
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Cerrar sesión", color = Color.Red) },
+                    onClick = {
+                        showMenu = false
+                        onLogoutClick()
+                    }
+                )
+            }
+        }
     }
 }
 
@@ -140,7 +159,7 @@ fun HomeSearchBar() {
 }
 
 @Composable
-fun HomeFilters() {
+fun HomeFilters(propertiesCount: Int) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -151,7 +170,7 @@ fun HomeFilters() {
         Spacer(modifier = Modifier.width(8.dp))
         FilterChip(text = "Relevancia")
         Spacer(modifier = Modifier.weight(1f))
-        Text("8 propiedades", color = Color.Gray, fontSize = 12.sp)
+        Text("$propertiesCount propiedades", color = Color.Gray, fontSize = 12.sp)
     }
 }
 
@@ -164,7 +183,7 @@ fun FilterChip(text: String) {
             .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Default.List, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
+        Icon(Icons.AutoMirrored.Filled.List, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
         Spacer(modifier = Modifier.width(4.dp))
         Text(text, fontSize = 14.sp, color = DarkBlue)
         Spacer(modifier = Modifier.width(4.dp))
