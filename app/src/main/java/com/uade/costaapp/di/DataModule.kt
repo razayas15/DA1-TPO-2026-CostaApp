@@ -13,6 +13,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
@@ -38,10 +40,21 @@ object DataModule {
 
     @Provides
     @Singleton
-    fun provideRetrofit(): Retrofit {
+    fun provideOkHttpClient(): OkHttpClient {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+        return OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            // BASE_URL ajustada para apuntar al entorno servido por GitHub Pages
-            .baseUrl("https://razayas15.github.io/DA1-TPO-2026-CostaApp/")
+            .baseUrl("https://raw.githubusercontent.com/razayas15/costaapp-api/refs/heads/main/")
+            .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }

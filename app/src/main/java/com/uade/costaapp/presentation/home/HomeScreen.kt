@@ -47,6 +47,7 @@ fun HomeScreen(
     val properties by homeViewModel.properties.collectAsStateWithLifecycle()
 
     Scaffold(
+        modifier = Modifier.systemBarsPadding(),
         topBar = { 
             HomeHeader(
                 onLogoutClick = {

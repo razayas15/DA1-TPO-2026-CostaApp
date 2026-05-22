@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -34,7 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
-private const val WEB_CLIENT_ID = "TU_WEB_CLIENT_ID_AQUI"
+private const val WEB_CLIENT_ID = "1048957298424-30h862qvu3l5grmcom8lsekqk3stc1ml.apps.googleusercontent.com"
 
 @Composable
 fun LoginScreen(
@@ -58,6 +59,7 @@ fun LoginScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(lightGray)
+            .systemBarsPadding()
             .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
