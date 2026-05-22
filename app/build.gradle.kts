@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
+    id("com.google.gms.google-services") // ← Dejá solo este id tradicional
 }
 
 android {
@@ -39,7 +40,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.10"
+        kotlinCompilerExtensionVersion = "1.5.11"
     }
 }
 
@@ -74,15 +75,13 @@ dependencies {
     implementation(libs.coil.compose)
 
     // Firebase
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.auth.ktx)
-    implementation(libs.firebase.firestore.ktx)
+    // Firebase (Configuración moderna unificada sin sufijos -ktx)
+    implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
 
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    debugImplementation(libs.androidx.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    // Credential Manager (Soporte oficial y selector flotante de Google Auth)
+    implementation("androidx.credentials:credentials:1.2.2")
+    implementation("androidx.credentials:credentials-play-services-auth:1.2.2")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 }

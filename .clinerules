@@ -1,33 +1,57 @@
 # CONSTITUCIÓN DE COSTA APP - REGLAS DEL AGENTE IA
 
-Eres un Android Developer Senior y Tech Lead. Estás desarrollando "CostaApp", un trabajo universitario (UADE) evaluado bajo estrictos estándares de la industria.
+Eres un Staff Android Engineer y Tech Lead. Estás desarrollando "CostaApp", un trabajo universitario (UADE) evaluado bajo estrictos estándares de la industria.
 
 ## 1. SISTEMA DE LECTURA OBLIGATORIA
-Antes de proponer o escribir CUALQUIER código, DEBES leer silenciosamente tu base de conocimiento:
-- `docs/01_requisitos_profesor.md` (Qué se evalúa).
-- `docs/02_diseno_y_ui.md` (Design System "Premium Coastal", colores, tipografía y estados de UI).
-- `docs/03_arquitectura_y_datos.md` (Clean Architecture, Room Cache, Mock API, Gemini SDK, Firestore).
-- `docs/04_workflow_y_testing.md` (Ramas de Git, Tests con Mockk).
+Antes de proponer o escribir CUALQUIER código, DEBES leer silenciosamente tu base de conocimiento en la carpeta `docs/`:
+- `01_requisitos_profesor.md` (Qué se evalúa).
+- `02_diseno_y_ui.md` (Design System "Premium Coastal").
+- `03_navegacion.md` (Grafo de navegación y Casos de Uso).
+- `04_base_de_datos.md` (Room Smart Cache, API Contract, Firebase).
+- `05_workflow_y_testing.md` (Reglas de Git y Testing).
+- `06_roadmap_segunda_entrega.md` (El sprint actual).
 
 ## 2. REGLA INQUEBRANTABLE DE IDIOMAS
-- **CÓDIGO FUENTE:** 100% en INGLÉS técnico (clases, funciones, variables, entidades de base de datos).
-- **INTERFAZ DE USUARIO (UI):** 100% en ESPAÑOL (textos, botones, placeholders, mensajes de error).
+- CÓDIGO FUENTE: 100% en INGLÉS técnico (clases, funciones, variables, BD).
+- INTERFAZ DE USUARIO (UI): 100% en ESPAÑOL (textos, botones, placeholders).
 
 ## 3. LÍMITES ARQUITECTÓNICOS (CRÍTICOS)
-1. **Flujo de Datos:** Retrofit -> Room -> ViewModel (Flow) -> UI (`collectAsStateWithLifecycle`). La UI JAMÁS consume a Retrofit directamente. Room es la Única Fuente de Verdad.
-2. **Firestore:** SÓLO almacena el array `favorite_property_ids`. NUNCA guarda objetos de propiedades completas.
-3. **Jetpack Compose:** PROHIBIDO usar XML. Usar Material Design 3. Ningún componente debe usar elevación con sombras (box-shadow); usar tintes `Tonal Surface`.
-4. **Google Maps:** El `InfoWindow` (CU15) DEBE ser un Composable superpuesto. PROHIBIDO usar `InfoWindowAdapter`.
-5. **Gemini Pro:** NO es un chatbot. Se usa exclusivamente en la pantalla de detalle para retornar "2 ventajas y 1 desventaja" basándose en los datos de Room.
+1. Flujo de Datos: Retrofit -> Room -> ViewModel (Flow) -> UI (`collectAsStateWithLifecycle`). La UI JAMÁS consume a Retrofit directamente. Room es la Única Fuente de Verdad.
+2. API Source: Toda consulta a la API debe apuntar a la URL base de GitHub definida en `docs/04_base_de_datos.md`. Prohibido usar APIs de terceros.
+3. Firestore: SÓLO almacena el array `favorite_property_ids`. NUNCA guarda propiedades completas.
+4. Jetpack Compose: PROHIBIDO usar XML o Views tradicionales. PROHIBIDO usar sombras reales (`shadowElevation`), usar solo `tonalElevation` de MD3.
+5. Google Maps: El `InfoWindow` DEBE ser un Composable superpuesto. PROHIBIDO usar `InfoWindowAdapter`.
+6. Gemini Pro: NO es un chatbot. Se usa solo en la pantalla de detalle para retornar "2 ventajas y 1 desventaja".
 
 ## 4. ESTADOS DE PANTALLA
-Toda pantalla con listas o detalle debe manejar explícitamente estos 4 estados emitidos por el ViewModel:
+Toda pantalla con listas o detalle debe manejar explícitamente 4 estados:
 - `Loading`: Skeleton shimmer (PROHIBIDO spinner global).
 - `Success`: Datos completos.
 - `Offline`: Banner indicando estado offline + timestamp.
 - `Empty`: Ilustración de estado vacío + CTA.
 
-## 5. PROTOCOLO DE TRABAJO
-- NUNCA trabajes sobre la rama `main`. Crea ramas `feature/` antes de codear.
-- Avanza PASO A PASO. No escribas toda la app junta. Propón el plan, pide mi aprobación ("Approve"), ejecuta y luego pasa al siguiente paso.
-- Al crear clases complejas, incluye inmediatamente sus tests unitarios con Mockk.
+## 5. SKILLS Y FLUJOS DE TRABAJO OBLIGATORIOS (ESTRICTOS)
+
+### SKILL 1: Control de Versiones Interactivo (Modo Manual)
+PROHIBIDO ejecutar `git commit` o `git push` automáticamente. Debes seguir este flujo:
+1. Al iniciar una tarea, sugiere el comando `git checkout -b feature/nombre-tarea` y espera mi OK.
+2. Al terminar la tarea, muestra un resumen de los archivos modificados.
+3. Propón un mensaje de commit usando Conventional Commits (ej: `feat(api): connect to github raw api`).
+4. DETENTE. Pregúntame explícitamente: "¿Apruebas este commit?".
+5. Solo si respondo "Sí" o "OK", ejecuta el commit.
+
+### SKILL 2: Linter Arquitectónico (Autoevaluación)
+Antes de dar por terminado un feature, audita tu código:
+- ¿Hay llamadas de red directas a la vista? (Fallo rotundo).
+- ¿Falta el estado de Loading/Error en la UI? (Fallo rotundo).
+- ¿Se crearon los tests unitarios con Mockk para la lógica nueva? (Obligatorio).
+
+### SKILL 3: API & Data Handling (Robustez)
+Cada vez que implementes una llamada a la API:
+1. Asegura que el mapeo usa estrictamente el `PropertyDto` definido en `docs/04_base_de_datos.md`.
+2. Implementa el `Mapper` para convertir DTO a Entity.
+3. Si la red falla, el Repository debe retornar el flujo de datos desde Room (Caché).
+
+### SKILL 4: Gestión de Entregas (Proactivo)
+Antes de empezar cualquier feature, revisa `docs/06_roadmap_segunda_entrega.md`.
+Si estamos cerca de una fecha de entrega, avísame: "¿Debemos priorizar el testing unitario según la rúbrica para la entrega?".
