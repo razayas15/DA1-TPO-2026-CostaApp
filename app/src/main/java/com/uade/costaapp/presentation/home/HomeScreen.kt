@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,8 +45,11 @@ fun HomeScreen(
     authViewModel: AuthViewModel = hiltViewModel(),
     homeViewModel: HomeViewModel = hiltViewModel()
 ) {
-    // Escucha reactivamente la base de datos (Room)
     val properties by homeViewModel.properties.collectAsStateWithLifecycle()
+    val recommendedProperties by homeViewModel.recommendedProperties.collectAsStateWithLifecycle()
+    val searchQuery by homeViewModel.searchQuery.collectAsStateWithLifecycle()
+    val selectedOperation by homeViewModel.selectedOperation.collectAsStateWithLifecycle()
+    val selectedSort by homeViewModel.selectedSort.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = Modifier.safeDrawingPadding(),
@@ -65,23 +69,56 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            HomeSearchBar()
-            HomeFilters(propertiesCount = properties.size)
-            
-            Text(
-                text = "Recomendamos para vos",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = DarkBlue,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            HomeSearchBar(
+                query = searchQuery,
+                onQueryChange = { homeViewModel.onSearchQueryChanged(it) }
             )
-
+            HomeFilters(
+                selectedOperation = selectedOperation,
+                selectedSort = selectedSort,
+                onOperationChanged = { homeViewModel.onOperationChanged(it) },
+                onSortChanged = { homeViewModel.onSortChanged(it) },
+                propertiesCount = properties.size
+            )
+            
             LazyColumn(
-                contentPadding = PaddingValues(16.dp),
+                contentPadding = PaddingValues(bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                item {
+                    Text(
+                        text = "Recomendamos para vos",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = DarkBlue,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                    
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(recommendedProperties) { property ->
+                            Box(modifier = Modifier.width(280.dp)) {
+                                PropertyCard(property = property, onClick = { onNavigateToDetail(it) })
+                            }
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Explorar",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = DarkBlue,
+                        modifier = Modifier.padding(horizontal = 16.dp, bottom = 8.dp)
+                    )
+                }
+
                 items(properties) { property ->
-                    PropertyCard(property = property, onClick = { onNavigateToDetail(it) })
+                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        PropertyCard(property = property, onClick = { onNavigateToDetail(it) })
+                    }
                 }
             }
         }
@@ -141,55 +178,103 @@ fun HomeHeader(onLogoutClick: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeSearchBar() {
+fun HomeSearchBar(query: String, onQueryChange: (String) -> Unit) {
     Box(modifier = Modifier.padding(16.dp)) {
-        Row(
+        OutlinedTextField(
+            value = query,
+            onValueChange = onQueryChange,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
-                .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
-                .background(Color.White, RoundedCornerShape(12.dp))
-                .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.Gray)
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Buscar en Pinamar...", color = Color.Gray)
-        }
+                .background(Color.White, RoundedCornerShape(12.dp)),
+            placeholder = { Text("Buscar en Pinamar...", color = Color.Gray) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.Gray) },
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White,
+                focusedBorderColor = BrandOrange,
+                unfocusedBorderColor = Color(0xFFE0E0E0)
+            ),
+            singleLine = true
+        )
     }
 }
 
 @Composable
-fun HomeFilters(propertiesCount: Int) {
+fun HomeFilters(
+    selectedOperation: String,
+    selectedSort: String,
+    onOperationChanged: (String) -> Unit,
+    onSortChanged: (String) -> Unit,
+    propertiesCount: Int
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        FilterChip(text = "Todas")
+        FilterDropdown(
+            options = listOf("Todas", "Venta", "Alquiler"),
+            selectedOption = selectedOperation,
+            onOptionSelected = onOperationChanged
+        )
         Spacer(modifier = Modifier.width(8.dp))
-        FilterChip(text = "Relevancia")
+        FilterDropdown(
+            options = listOf("Relevancia", "Menor precio", "Mayor precio", "Más ambientes", "Mayor superficie"),
+            selectedOption = selectedSort,
+            onOptionSelected = onSortChanged
+        )
         Spacer(modifier = Modifier.weight(1f))
         Text("$propertiesCount propiedades", color = Color.Gray, fontSize = 12.sp)
     }
 }
 
 @Composable
-fun FilterChip(text: String) {
-    Row(
-        modifier = Modifier
-            .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(20.dp))
-            .background(Color.White, RoundedCornerShape(20.dp))
-            .padding(horizontal = 12.dp, vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(Icons.AutoMirrored.Filled.List, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(text, fontSize = 14.sp, color = DarkBlue)
-        Spacer(modifier = Modifier.width(4.dp))
-        Icon(Icons.Default.ArrowDropDown, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
+fun FilterDropdown(options: List<String>, selectedOption: String, onOptionSelected: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box {
+        Row(
+            modifier = Modifier
+                .border(1.dp, Color(0xFFE0E0E0), RoundedCornerShape(20.dp))
+                .background(Color.White, RoundedCornerShape(20.dp))
+                .clickable { expanded = true }
+                .padding(horizontal = 12.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.AutoMirrored.Filled.List, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(selectedOption, fontSize = 14.sp, color = DarkBlue)
+            Spacer(modifier = Modifier.width(4.dp))
+            Icon(Icons.Default.ArrowDropDown, contentDescription = null, modifier = Modifier.size(16.dp), tint = Color.Gray)
+        }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.background(Color.White)
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(option, color = DarkBlue)
+                            if (option == selectedOption) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Icon(Icons.Default.Check, contentDescription = null, tint = DarkBlue, modifier = Modifier.size(16.dp))
+                            }
+                        }
+                    },
+                    onClick = {
+                        onOptionSelected(option)
+                        expanded = false
+                    }
+                )
+            }
+        }
     }
 }
 
@@ -216,9 +301,11 @@ fun PropertyCard(property: PropertyEntity, onClick: (String) -> Unit) {
                     modifier = Modifier.fillMaxSize()
                 )
                 
-                val tagColor = if (property.operationType.equals("Venta", true)) DarkBlue else Color(0xFF00BFA5)
+                val isSale = property.operationType.equals("sale", true) || property.operationType.equals("venta", true)
+                val tagColor = if (isSale) DarkBlue else Color(0xFF00BFA5)
+                val tagText = if (isSale) "VENTA" else "ALQUILER"
                 Text(
-                    text = property.operationType.uppercase(),
+                    text = tagText,
                     color = Color.White,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
