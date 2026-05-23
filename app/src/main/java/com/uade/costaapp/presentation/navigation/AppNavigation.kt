@@ -50,6 +50,9 @@ fun AppNavigation() {
                 },
                 onNavigateToDetail = { propertyId ->
                     navController.navigate("detail/$propertyId")
+                },
+                onNavigateToProfile = {
+                    navController.navigate("profile")
                 }
             )
         }

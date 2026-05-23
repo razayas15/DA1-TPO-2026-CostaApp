@@ -84,4 +84,14 @@ class HomeViewModel @Inject constructor(
     fun onSearchQueryChanged(query: String) { _searchQuery.value = query }
     fun onOperationChanged(operation: String) { _selectedOperation.value = operation }
     fun onSortChanged(sort: String) { _selectedSort.value = sort }
+
+    fun toggleFavorite(property: PropertyEntity) {
+        viewModelScope.launch {
+            try {
+                repository.updateFavorite(property.id, !property.isFavorite)
+            } catch (e: Exception) {
+                // Manejo de error de base de datos
+            }
+        }
+    }
 }

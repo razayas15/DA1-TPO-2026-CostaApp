@@ -42,6 +42,7 @@ val LightBlueAccent = Color(0xFFE3F2FD)
 fun HomeScreen(
     onNavigateToLogin: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
+    onNavigateToProfile: () -> Unit,
     authViewModel: AuthViewModel = hiltViewModel(),
     homeViewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -55,10 +56,7 @@ fun HomeScreen(
         modifier = Modifier.safeDrawingPadding(),
         topBar = { 
             HomeHeader(
-                onLogoutClick = {
-                    authViewModel.signOut()
-                    onNavigateToLogin()
-                }
+                onProfileClick = { onNavigateToProfile() }
             ) 
         },
         bottomBar = { HomeBottomNavigation() },
@@ -100,7 +98,11 @@ fun HomeScreen(
                     ) {
                         items(recommendedProperties) { property ->
                             Box(modifier = Modifier.width(280.dp)) {
-                                PropertyCard(property = property, onClick = { onNavigateToDetail(it) })
+                                PropertyCard(
+                                    property = property, 
+                                    onClick = { onNavigateToDetail(it) },
+                                    onFavoriteClick = { homeViewModel.toggleFavorite(it) }
+                                )
                             }
                         }
                     }
@@ -117,7 +119,11 @@ fun HomeScreen(
 
                 items(properties) { property ->
                     Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                        PropertyCard(property = property, onClick = { onNavigateToDetail(it) })
+                        PropertyCard(
+                            property = property, 
+                            onClick = { onNavigateToDetail(it) },
+                            onFavoriteClick = { homeViewModel.toggleFavorite(it) }
+                        )
                     }
                 }
             }
@@ -126,9 +132,7 @@ fun HomeScreen(
 }
 
 @Composable
-fun HomeHeader(onLogoutClick: () -> Unit) {
-    var showMenu by remember { mutableStateOf(false) }
-
+fun HomeHeader(onProfileClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -159,21 +163,8 @@ fun HomeHeader(onLogoutClick: () -> Unit) {
                     .size(36.dp)
                     .background(Color.White, CircleShape)
                     .padding(6.dp)
-                    .clickable { showMenu = true }
+                    .clickable { onProfileClick() }
             )
-            DropdownMenu(
-                expanded = showMenu,
-                onDismissRequest = { showMenu = false },
-                modifier = Modifier.background(Color.White)
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Cerrar sesión", color = Color.Red) },
-                    onClick = {
-                        showMenu = false
-                        onLogoutClick()
-                    }
-                )
-            }
         }
     }
 }
@@ -196,7 +187,9 @@ fun HomeSearchBar(query: String, onQueryChange: (String) -> Unit) {
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White,
                 focusedBorderColor = BrandOrange,
-                unfocusedBorderColor = Color(0xFFE0E0E0)
+                unfocusedBorderColor = Color(0xFFE0E0E0),
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black
             ),
             singleLine = true
         )
@@ -279,7 +272,11 @@ fun FilterDropdown(options: List<String>, selectedOption: String, onOptionSelect
 }
 
 @Composable
-fun PropertyCard(property: PropertyEntity, onClick: (String) -> Unit) {
+fun PropertyCard(
+    property: PropertyEntity, 
+    onClick: (String) -> Unit,
+    onFavoriteClick: (PropertyEntity) -> Unit
+) {
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -320,13 +317,14 @@ fun PropertyCard(property: PropertyEntity, onClick: (String) -> Unit) {
                         .align(Alignment.TopEnd)
                         .padding(12.dp)
                         .size(36.dp)
-                        .background(Color.White.copy(alpha = 0.8f), CircleShape),
+                        .background(Color.White.copy(alpha = 0.8f), CircleShape)
+                        .clickable { onFavoriteClick(property) },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = if (property.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = "Favorite",
-                        tint = if (property.isFavorite) BrandOrange else Color.Gray,
+                        tint = if (property.isFavorite) Color.Red else Color.Gray,
                         modifier = Modifier.size(20.dp)
                     )
                 }
