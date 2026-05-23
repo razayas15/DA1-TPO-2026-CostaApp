@@ -74,9 +74,11 @@ class HomeViewModel @Inject constructor(
     private fun fetchProperties() {
         viewModelScope.launch {
             try {
-                repository.refreshProperties()
+                repository.refreshProperties() // Intenta traer el JSON de GitHub
             } catch (e: Exception) {
-                // Modo offline
+                // Modo Offline: Si no hay internet, no fallamos. 
+                // Los flujos reactivos de Room seguirán enviando datos. 
+                // Opcionalmente, puedes setear un flag para mostrar un SnackBar de "Sin conexión".
             }
         }
     }

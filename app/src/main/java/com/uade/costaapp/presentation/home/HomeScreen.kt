@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -183,13 +185,12 @@ fun HomeSearchBar(query: String, onQueryChange: (String) -> Unit) {
             placeholder = { Text("Buscar en Pinamar...", color = Color.Gray) },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search", tint = Color.Gray) },
             shape = RoundedCornerShape(12.dp),
+            textStyle = TextStyle(color = Color.Black, fontSize = 16.sp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White,
                 focusedBorderColor = BrandOrange,
-                unfocusedBorderColor = Color(0xFFE0E0E0),
-                focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black
+                unfocusedBorderColor = Color(0xFFE0E0E0)
             ),
             singleLine = true
         )
@@ -318,7 +319,7 @@ fun PropertyCard(
                         .padding(12.dp)
                         .size(36.dp)
                         .background(Color.White.copy(alpha = 0.8f), CircleShape)
-                        .clickable { onFavoriteClick(property) },
+                        .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { onFavoriteClick(property) },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
