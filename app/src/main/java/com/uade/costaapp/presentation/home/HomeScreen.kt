@@ -111,7 +111,7 @@ fun HomeScreen(
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = DarkBlue,
-                        modifier = Modifier.padding(horizontal = 16.dp, bottom = 8.dp)
+                        modifier = Modifier.padding(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 8.dp)
                     )
                 }
 
