@@ -82,7 +82,7 @@ fun HomeScreen(
             )
             
             LazyColumn(
-                contentPadding = PaddingValues(bottom = 16.dp),
+                contentPadding = PaddingValues(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
