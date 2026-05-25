@@ -60,8 +60,10 @@ fun AppNavigation() {
         composable(
             route = "detail/{propertyId}",
             arguments = listOf(navArgument("propertyId") { type = NavType.StringType })
-        ) {
+        ) { backStackEntry ->
+            val propertyId = backStackEntry.arguments?.getString("propertyId") ?: return@composable
             PropertyDetailScreen(
+                propertyId = propertyId,
                 onNavigateBack = { navController.popBackStack() }
             )
         }

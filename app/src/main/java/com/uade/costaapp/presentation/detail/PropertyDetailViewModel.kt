@@ -1,28 +1,41 @@
 package com.uade.costaapp.presentation.detail
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.uade.costaapp.data.local.entity.PropertyEntity
 import com.uade.costaapp.domain.repository.PropertyRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class PropertyDetailViewModel @Inject constructor(
-    private val repository: PropertyRepository,
-    savedStateHandle: SavedStateHandle
+    private val repository: PropertyRepository
 ) : ViewModel() {
 
-    private val propertyId: String = checkNotNull(savedStateHandle["propertyId"])
+    private val _property = MutableStateFlow<PropertyEntity?>(null)
+    val property: StateFlow<PropertyEntity?> = _property.asStateFlow()
 
-    val property: StateFlow<PropertyEntity?> = repository.getPropertyById(propertyId)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = null
-        )
+    fun loadProperty(id: String) {
+        viewModelScope.launch {
+            repository.getPropertyById(id).collectLatest { entity ->
+                _property.value = entity
+            }
+        }
+    }
+
+    fun toggleFavorite() {
+        val currentProperty = _property.value ?: return
+        viewModelScope.launch {
+            try {
+                repository.updateFavorite(currentProperty.id, !currentProperty.isFavorite)
+            } catch (e: Exception) {
+                // Manejar error de base de datos
+            }
+        }
+    }
 }
