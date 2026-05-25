@@ -58,7 +58,17 @@ fun HomeScreen(
         modifier = Modifier.safeDrawingPadding(),
         topBar = { 
             HomeHeader(
-                onProfileClick = { onNavigateToProfile() }
+                onProfileClick = { 
+                    try {
+                        onNavigateToProfile() 
+                    } catch (e: IllegalArgumentException) {
+                        // Evita crash temporal si la ruta no existe aún
+                    }
+                },
+                onLogoutClick = {
+                    authViewModel.signOut()
+                    onNavigateToLogin()
+                }
             ) 
         },
         bottomBar = { HomeBottomNavigation() },
@@ -134,7 +144,12 @@ fun HomeScreen(
 }
 
 @Composable
-fun HomeHeader(onProfileClick: () -> Unit) {
+fun HomeHeader(
+    onProfileClick: () -> Unit,
+    onLogoutClick: () -> Unit
+) {
+    var menuExpanded by remember { mutableStateOf(false) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -165,8 +180,29 @@ fun HomeHeader(onProfileClick: () -> Unit) {
                     .size(36.dp)
                     .background(Color.White, CircleShape)
                     .padding(6.dp)
-                    .clickable { onProfileClick() }
+                    .clickable { menuExpanded = true }
             )
+            
+            DropdownMenu(
+                expanded = menuExpanded,
+                onDismissRequest = { menuExpanded = false },
+                modifier = Modifier.background(Color.White)
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Mi perfil", color = DarkBlue) },
+                    onClick = {
+                        menuExpanded = false
+                        onProfileClick()
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("Cerrar sesión", color = Color.Red) },
+                    onClick = {
+                        menuExpanded = false
+                        onLogoutClick()
+                    }
+                )
+            }
         }
     }
 }
