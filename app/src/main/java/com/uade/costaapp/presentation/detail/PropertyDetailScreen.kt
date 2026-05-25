@@ -10,6 +10,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,6 +23,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -47,155 +50,173 @@ fun PropertyDetailScreen(
         viewModel.loadProperty(propertyId)
     }
 
-    // El Box principal ahora es nuestro lienzo para superposiciones
+    // Fondo general gris muy claro
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black) // Fondo por si la imagen tarda
+            .background(Color(0xFFF8F9FA))
     ) {
         property?.let { prop ->
-            // 1. IMAGEN DE CABECERA (Mitad Superior)
-            AsyncImage(
-                model = prop.imageUrl,
-                contentDescription = "Property Image",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(420.dp) // Generosa para ser pisada por la tarjeta
-                    .align(Alignment.TopCenter),
-                contentScale = ContentScale.Crop
-            )
+            // Simulamos 3 imágenes duplicando prop.imageUrl para probar el Pager
+            val mockImages = listOf(prop.imageUrl, prop.imageUrl, prop.imageUrl)
+            val pagerState = rememberPagerState(pageCount = { mockImages.size })
 
-            // 2. BOTONES FLOTANTES SUPERIORES (Volver y Favorito)
-            Row(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .safeDrawingPadding() // Evita Notch y Status Bar
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-                    .align(Alignment.TopCenter),
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
             ) {
-                // Volver
+                // 1. CARRUSEL DE IMÁGENES Y BOTONES FLOTANTES
                 Box(
                     modifier = Modifier
-                        .size(44.dp)
-                        .background(Color.White.copy(alpha = 0.8f), CircleShape)
-                        .clickable { onNavigateBack() },
-                    contentAlignment = Alignment.Center
+                        .fillMaxWidth()
+                        .height(320.dp) // Altura contundente
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = DarkBlue)
-                }
+                    HorizontalPager(
+                        state = pagerState,
+                        modifier = Modifier.fillMaxSize()
+                    ) { page ->
+                        AsyncImage(
+                            model = mockImages[page],
+                            contentDescription = "Imagen de la propiedad $page",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
 
-                // Favorito
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .background(Color.White.copy(alpha = 0.8f), CircleShape)
-                        .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
-                            viewModel.toggleFavorite()
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = if (prop.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = "Favorite",
-                        tint = if (prop.isFavorite) Color.Red else Color.Gray
-                    )
-                }
-            }
-
-            // 3. TARJETA PRINCIPAL BLANCA (Mitad Inferior + Superposición)
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.65f) // Ocupa el 65% inferior de la pantalla
-                    .align(Alignment.BottomCenter),
-                shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
-                color = Color.White
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 24.dp, vertical = 32.dp)
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    // Fila Principal: Precio y Botón Compartir
+                    // Puntos indicadores del Pager
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 16.dp),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        repeat(mockImages.size) { iteration ->
+                            val color = if (pagerState.currentPage == iteration) Color.White else Color.White.copy(alpha = 0.5f)
+                            Box(
+                                modifier = Modifier
+                                    .padding(4.dp)
+                                    .clip(CircleShape)
+                                    .background(color)
+                                    .size(8.dp)
+                            )
+                        }
+                    }
+
+                    // Capa superior con los botones flotantes (Z-Index alto)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .safeDrawingPadding() // Protege del Notch
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                            .align(Alignment.TopCenter),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column {
-                            Text(
-                                text = if (prop.operationType == "sale") "VENTA" else "ALQUILER",
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.Gray,
-                                letterSpacing = 1.sp
-                            )
-                            Text(
-                                text = "USD ${prop.price}",
-                                fontSize = 32.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = BrandOrange
-                            )
+                        // Botón Volver
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .background(Color.White.copy(alpha = 0.9f), CircleShape)
+                                .clickable { onNavigateBack() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = DarkBlue)
                         }
 
-                        // Compartir (Estilo Red Social)
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
-                                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                val clip = android.content.ClipData.newPlainText("CostaApp", "Mirá esta propiedad en CostaApp: https://costaapp.com/detail/${prop.id}")
-                                clipboard.setPrimaryClip(clip)
-                                Toast.makeText(context, "Enlace copiado al portapapeles", Toast.LENGTH_SHORT).show()
-                            }
-                        ) {
+                        // Grupo Derecho: Compartir y Favorito
+                        Row {
                             Box(
                                 modifier = Modifier
-                                    .size(40.dp)
-                                    .background(Color(0xFFF5F6F8), CircleShape),
+                                    .size(44.dp)
+                                    .background(Color.White.copy(alpha = 0.9f), CircleShape)
+                                    .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
+                                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                        val clip = android.content.ClipData.newPlainText("CostaApp", "Mirá esta propiedad en CostaApp: https://costaapp.com/detail/${prop.id}")
+                                        clipboard.setPrimaryClip(clip)
+                                        Toast.makeText(context, "Enlace copiado al portapapeles", Toast.LENGTH_SHORT).show()
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(Icons.Default.Share, contentDescription = "Compartir", tint = DarkBlue, modifier = Modifier.size(20.dp))
                             }
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text("Compartir", fontSize = 12.sp, color = DarkBlue, fontWeight = FontWeight.SemiBold)
+                            
+                            Spacer(modifier = Modifier.width(12.dp))
+                            
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .background(Color.White.copy(alpha = 0.9f), CircleShape)
+                                    .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
+                                        viewModel.toggleFavorite()
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = if (prop.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                    contentDescription = "Favorite",
+                                    tint = if (prop.isFavorite) Color.Red else Color.Gray
+                                )
+                            }
                         }
                     }
+                }
+
+                // 2. LAYOUT DE CONTENIDO (Debajo de la imagen)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp)
+                ) {
+                    // Precio y Tipo
+                    Text(
+                        text = if (prop.operationType == "sale") "VENTA" else "ALQUILER",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Gray,
+                        letterSpacing = 1.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "USD ${prop.price}",
+                        fontSize = 34.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = BrandOrange
+                    )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Título y Zona
+                    // Título y Ubicación con Pin
                     Text(
                         text = prop.title,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = DarkBlue,
-                        lineHeight = 30.sp
+                        lineHeight = 32.sp
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.LocationOn, contentDescription = "Ubicación", tint = Color.Gray, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(Icons.Default.LocationOn, contentDescription = "Ubicación", tint = Color.Gray, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text(text = prop.zone, fontSize = 16.sp, color = Color.Gray)
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Grilla de Atributos
+                    // Grilla de Atributos (Cápsulas Horizontales)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        AttributeCard(Icons.Default.Home, "Ambientes", prop.rooms.toString())
-                        AttributeCard(Icons.Default.Build, "Baños", prop.bathrooms.toString())
-                        AttributeCard(Icons.Default.Place, "Superficie", "${prop.surface} m²")
+                        AttributeCapsule(Icons.Default.Home, "Ambientes", prop.rooms.toString())
+                        AttributeCapsule(Icons.Default.Build, "Baños", prop.bathrooms.toString())
+                        AttributeCapsule(Icons.Default.Place, "Superficie", "${prop.surface} m²")
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    // Descripción
-                    Text(text = "Descripción", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+                    // Descripción Clásica
+                    Text(text = "Descripción", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
                     Spacer(modifier = Modifier.height(12.dp))
                     Text(
                         text = prop.description,
@@ -204,9 +225,41 @@ fun PropertyDetailScreen(
                         lineHeight = 24.sp
                     )
 
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    // Placeholder Análisis IA (Fondo crema, estética sugerente)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color(0xFFF7F3EB), RoundedCornerShape(16.dp))
+                            .border(1.dp, Color(0xFFE8DFCD), RoundedCornerShape(16.dp))
+                            .padding(20.dp)
+                    ) {
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Star, contentDescription = "IA", tint = BrandOrange, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "ANÁLISIS IA",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = BrandOrange,
+                                    letterSpacing = 1.sp
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "Funcionalidad en desarrollo. Aquí la Inteligencia Artificial analizará la propiedad para destacar pros y contras personalizados basándose en tus preferencias.",
+                                fontSize = 14.sp,
+                                color = Color(0xFF6B5F4A),
+                                lineHeight = 20.sp
+                            )
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(40.dp))
 
-                    // Botones de Acción Finales
+                    // 3. BOTONES DE ACCIÓN (Fijos al final del scroll)
                     Button(
                         onClick = {
                             val uri = Uri.parse("https://wa.me/5491112345678")
@@ -224,7 +277,7 @@ fun PropertyDetailScreen(
                         Text("Contactar por WhatsApp", color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     OutlinedButton(
                         onClick = {
@@ -240,6 +293,7 @@ fun PropertyDetailScreen(
                             .fillMaxWidth()
                             .height(56.dp),
                         shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White),
                         border = androidx.compose.foundation.BorderStroke(1.dp, DarkBlue)
                     ) {
                         Icon(Icons.Default.LocationOn, contentDescription = "Mapa", tint = DarkBlue)
@@ -247,11 +301,10 @@ fun PropertyDetailScreen(
                         Text("Ver ubicación en el mapa", color = DarkBlue, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                     
-                    Spacer(modifier = Modifier.height(32.dp)) // Espacio final
+                    Spacer(modifier = Modifier.height(24.dp)) // Padding final
                 }
             }
         } ?: run {
-            // Spinner de Carga Inicial
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = BrandOrange)
             }
@@ -259,18 +312,20 @@ fun PropertyDetailScreen(
     }
 }
 
+// Componente "Cápsula" para Atributos Rápidos
 @Composable
-fun AttributeCard(icon: ImageVector, label: String, value: String) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+fun AttributeCapsule(icon: ImageVector, label: String, value: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .background(Color(0xFFF5F6F8), RoundedCornerShape(16.dp))
-            .padding(vertical = 16.dp)
-            .width(100.dp)
+            .background(Color(0xFFEAF0F6), RoundedCornerShape(12.dp))
+            .padding(horizontal = 12.dp, vertical = 10.dp)
     ) {
-        Icon(icon, contentDescription = label, tint = DarkBlue, modifier = Modifier.size(24.dp))
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(text = value, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
-        Text(text = label, fontSize = 12.sp, color = Color.Gray)
+        Icon(icon, contentDescription = label, tint = DarkBlue, modifier = Modifier.size(20.dp))
+        Spacer(modifier = Modifier.width(8.dp))
+        Column {
+            Text(text = value, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
+            Text(text = label, fontSize = 11.sp, color = Color.Gray)
+        }
     }
 }
