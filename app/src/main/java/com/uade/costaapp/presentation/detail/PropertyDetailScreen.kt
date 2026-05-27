@@ -57,6 +57,7 @@ fun PropertyDetailScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF8F9FA))
+            .safeDrawingPadding()
     ) {
         property?.let { prop ->
             // Simulamos 3 imágenes duplicando prop.imageUrl para probar el Pager

@@ -74,4 +74,7 @@ class PropertyRepositoryImpl @Inject constructor(
             dao.updateFavorite(id, isFavorite)
         }
     }
+
+    override fun getFavoritesCount(): Flow<Int> = dao.getFavoritesCount()
+    override fun getViewedCount(): Flow<Int> = dao.getViewedCount()
 }

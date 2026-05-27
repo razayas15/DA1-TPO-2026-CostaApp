@@ -30,6 +30,7 @@ fun FavoritesScreen(
     val favorites by viewModel.favorites.collectAsStateWithLifecycle()
 
     Scaffold(
+        modifier = Modifier.safeDrawingPadding(),
         topBar = {
             TopAppBar(
                 title = { Text("Mis Favoritos", color = DarkBlue, fontWeight = FontWeight.Bold) },

@@ -10,4 +10,6 @@ interface PropertyRepository {
     suspend fun refreshProperties()
     suspend fun updateFavorite(id: String, isFavorite: Boolean)
     suspend fun markAsViewed(id: String)
+    fun getFavoritesCount(): Flow<Int>
+    fun getViewedCount(): Flow<Int>
 }

@@ -28,4 +28,10 @@ interface PropertyDao {
 
     @Query("SELECT * FROM properties WHERE id = :id")
     fun getPropertyById(id: String): Flow<PropertyEntity?>
+
+    @Query("SELECT COUNT(*) FROM properties WHERE isFavorite = 1")
+    fun getFavoritesCount(): Flow<Int>
+
+    @Query("SELECT COUNT(*) FROM properties WHERE lastViewedAt > 0")
+    fun getViewedCount(): Flow<Int>
 }

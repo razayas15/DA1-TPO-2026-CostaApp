@@ -36,10 +36,13 @@ fun ProfileScreen(
 ) {
     val userName by viewModel.userName.collectAsStateWithLifecycle()
     val userEmail by viewModel.userEmail.collectAsStateWithLifecycle()
+    val favoritesCount by viewModel.favoritesCount.collectAsStateWithLifecycle()
+    val viewedCount by viewModel.viewedCount.collectAsStateWithLifecycle()
 
     val initial = userName.firstOrNull()?.uppercase() ?: "U"
 
     Scaffold(
+        modifier = Modifier.safeDrawingPadding(),
         topBar = {
             TopAppBar(
                 title = { Text("Mi Perfil", color = DarkBlue, fontWeight = FontWeight.Bold) },
@@ -91,7 +94,7 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Estadísticas (con mocks por ahora para la demo)
+            // Estadísticas
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -100,14 +103,14 @@ fun ProfileScreen(
                     modifier = Modifier.weight(1f),
                     icon = Icons.Default.FavoriteBorder,
                     iconColor = BrandOrange,
-                    count = "1", 
+                    count = favoritesCount.toString(), 
                     label = "Favoritos"
                 )
                 StatCard(
                     modifier = Modifier.weight(1f),
                     icon = Icons.Default.LocationOn,
                     iconColor = DarkBlue,
-                    count = "8",
+                    count = viewedCount.toString(),
                     label = "Propiedades"
                 )
             }
