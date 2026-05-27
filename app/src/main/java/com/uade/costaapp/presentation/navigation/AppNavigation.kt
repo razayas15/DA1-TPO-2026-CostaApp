@@ -67,5 +67,26 @@ fun AppNavigation() {
                 onNavigateBack = { navController.popBackStack() }
             )
         }
+
+        composable("profile") {
+            com.uade.costaapp.presentation.profile.ProfileScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToFavorites = { navController.navigate("favorites") },
+                onLogoutSuccess = {
+                    navController.navigate("login") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable("favorites") {
+            com.uade.costaapp.presentation.favorites.FavoritesScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDetail = { propertyId ->
+                    navController.navigate("detail/$propertyId")
+                }
+            )
+        }
     }
 }
