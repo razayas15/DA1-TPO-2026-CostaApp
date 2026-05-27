@@ -30,7 +30,8 @@ object DataModule {
             context,
             CostaAppDatabase::class.java,
             "costaapp_db"
-        ).build()
+        ).fallbackToDestructiveMigration()
+         .build()
     }
 
     @Provides
