@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import com.uade.costaapp.data.local.dao.PropertyDao
 import com.uade.costaapp.data.local.entity.PropertyEntity
 
-@Database(entities = [PropertyEntity::class], version = 1, exportSchema = false)
+@Database(entities = [PropertyEntity::class], version = 2, exportSchema = false)
 abstract class CostaAppDatabase : RoomDatabase() {
     abstract fun propertyDao(): PropertyDao
 }
