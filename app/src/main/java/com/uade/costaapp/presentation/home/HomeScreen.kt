@@ -112,7 +112,10 @@ fun HomeScreen(
                             Box(modifier = Modifier.width(280.dp)) {
                                 PropertyCard(
                                     property = property, 
-                                    onClick = { onNavigateToDetail(it) },
+                                    onClick = { 
+                                        homeViewModel.markAsViewed(it)
+                                        onNavigateToDetail(it) 
+                                    },
                                     onFavoriteClick = { homeViewModel.toggleFavorite(it) }
                                 )
                             }
@@ -133,7 +136,10 @@ fun HomeScreen(
                     Box(modifier = Modifier.padding(horizontal = 16.dp)) {
                         PropertyCard(
                             property = property, 
-                            onClick = { onNavigateToDetail(it) },
+                            onClick = { 
+                                homeViewModel.markAsViewed(it)
+                                onNavigateToDetail(it) 
+                            },
                             onFavoriteClick = { homeViewModel.toggleFavorite(it) }
                         )
                     }

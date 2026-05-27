@@ -9,4 +9,5 @@ interface PropertyRepository {
     fun getPropertyById(id: String): Flow<PropertyEntity?>
     suspend fun refreshProperties()
     suspend fun updateFavorite(id: String, isFavorite: Boolean)
+    suspend fun markAsViewed(id: String)
 }

@@ -60,6 +60,10 @@ class HomeViewModel @Inject constructor(
             "Mayor superficie" -> filtered = filtered.sortedByDescending { it.surface }
         }
 
+        if (query.isBlank()) {
+            filtered = filtered.take(20)
+        }
+
         filtered
     }.stateIn(
         scope = viewModelScope,
@@ -93,6 +97,16 @@ class HomeViewModel @Inject constructor(
                 repository.updateFavorite(property.id, !property.isFavorite)
             } catch (e: Exception) {
                 // Manejo de error de base de datos
+            }
+        }
+    }
+
+    fun markAsViewed(propertyId: String) {
+        viewModelScope.launch {
+            try {
+                repository.markAsViewed(propertyId)
+            } catch (e: Exception) {
+                // ignorar
             }
         }
     }

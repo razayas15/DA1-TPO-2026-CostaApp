@@ -20,6 +20,7 @@ data class PropertyEntity(
     val imageUrl: String,
     val contactPhone: String,
     val isFavorite: Boolean = false,
+    val lastViewedAt: Long = 0L,
     val lastVisit: Long? = null,
     val lastUpdated: Long
 )

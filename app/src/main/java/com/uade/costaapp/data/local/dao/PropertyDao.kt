@@ -14,6 +14,12 @@ interface PropertyDao {
     @Query("UPDATE properties SET isFavorite = :isFavorite WHERE id = :id")
     suspend fun updateFavorite(id: String, isFavorite: Boolean)
 
+    @Query("UPDATE properties SET lastViewedAt = :timestamp WHERE id = :id")
+    suspend fun markAsViewed(id: String, timestamp: Long)
+
+    @Query("DELETE FROM properties WHERE isFavorite = 0 AND id NOT IN (SELECT id FROM properties ORDER BY lastViewedAt DESC LIMIT 10)")
+    suspend fun cleanupCache()
+
     @Query("SELECT * FROM properties ORDER BY lastUpdated DESC")
     fun getAllProperties(): Flow<List<PropertyEntity>>
 
