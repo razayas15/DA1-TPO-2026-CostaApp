@@ -34,9 +34,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import coil.compose.AsyncImage
 import com.uade.costaapp.presentation.home.BrandOrange
 import com.uade.costaapp.presentation.home.DarkBlue
+import com.uade.costaapp.presentation.home.InfoTag
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -47,6 +50,7 @@ fun PropertyDetailScreen(
 ) {
     val property by viewModel.property.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
 
     LaunchedEffect(propertyId) {
         viewModel.loadProperty(propertyId)
@@ -57,7 +61,6 @@ fun PropertyDetailScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF8F9FA))
-            .safeDrawingPadding()
     ) {
         property?.let { prop ->
             // Simulamos 3 imágenes duplicando prop.imageUrl para probar el Pager
@@ -110,7 +113,7 @@ fun PropertyDetailScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .safeDrawingPadding() // Protege del Notch
+                            .statusBarsPadding() // Protege del Notch (Inmersivo)
                             .padding(horizontal = 16.dp, vertical = 12.dp)
                             .align(Alignment.TopCenter),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -121,7 +124,10 @@ fun PropertyDetailScreen(
                             modifier = Modifier
                                 .size(44.dp)
                                 .background(Color.White.copy(alpha = 0.9f), CircleShape)
-                                .clickable { onNavigateBack() },
+                                .clickable { 
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    onNavigateBack() 
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver", tint = DarkBlue)
@@ -134,6 +140,7 @@ fun PropertyDetailScreen(
                                     .size(44.dp)
                                     .background(Color.White.copy(alpha = 0.9f), CircleShape)
                                     .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                         val clip = android.content.ClipData.newPlainText("CostaApp", "Mirá esta propiedad en CostaApp: https://costaapp.com/detail/${prop.id}")
                                         clipboard.setPrimaryClip(clip)
@@ -151,6 +158,7 @@ fun PropertyDetailScreen(
                                     .size(44.dp)
                                     .background(Color.White.copy(alpha = 0.9f), CircleShape)
                                     .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         viewModel.toggleFavorite()
                                     },
                                 contentAlignment = Alignment.Center
@@ -163,6 +171,22 @@ fun PropertyDetailScreen(
                             }
                         }
                     }
+
+                    // BADGE VENTA / ALQUILER
+                    val isSale = prop.operationType.equals("sale", true) || prop.operationType.equals("venta", true)
+                    val tagColor = if (isSale) DarkBlue else Color(0xFF00BFA5)
+                    val tagText = if (isSale) "VENTA" else "ALQUILER"
+                    Text(
+                        text = tagText,
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(16.dp)
+                            .background(tagColor, RoundedCornerShape(percent = 50))
+                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    )
                 }
 
                 // 2. LAYOUT DE CONTENIDO (Debajo de la imagen)
@@ -170,16 +194,9 @@ fun PropertyDetailScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(24.dp)
+                        .safeDrawingPadding() // Aplicamos padding acá abajo para asegurar
                 ) {
                     // Precio y Tipo
-                    Text(
-                        text = if (prop.operationType == "sale") "VENTA" else "ALQUILER",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Gray,
-                        letterSpacing = 1.sp
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "USD ${prop.price}",
                         fontSize = 34.sp,
@@ -209,11 +226,11 @@ fun PropertyDetailScreen(
                     // Grilla de Atributos (Cápsulas Horizontales)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        AttributeCapsule(Icons.Default.Home, "Ambientes", prop.rooms.toString())
-                        AttributeCapsule(Icons.Default.Build, "Baños", prop.bathrooms.toString())
-                        AttributeCapsule(Icons.Default.Place, "Superficie", "${prop.surface} m²")
+                        InfoTag(icon = Icons.Default.Home, text = "${prop.rooms} amb.")
+                        InfoTag(icon = Icons.Default.CheckCircle, text = "${prop.surface.toInt()} m²")
+                        InfoTag(icon = Icons.Default.Build, text = "${prop.bathrooms} baños")
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))
@@ -240,10 +257,10 @@ fun PropertyDetailScreen(
                     ) {
                         Column {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Star, contentDescription = "IA", tint = BrandOrange, modifier = Modifier.size(20.dp))
+                                Icon(Icons.Default.Build, contentDescription = "Under Construction", tint = BrandOrange, modifier = Modifier.size(20.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "ANÁLISIS IA",
+                                    text = "ANÁLISIS IA (PRÓXIMAMENTE)",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = BrandOrange,
@@ -252,7 +269,7 @@ fun PropertyDetailScreen(
                             }
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = "Funcionalidad en desarrollo. Aquí la Inteligencia Artificial analizará la propiedad para destacar pros y contras personalizados basándose en tus preferencias.",
+                                text = "Funcionalidad en desarrollo - Disponible en el próximo Sprint.",
                                 fontSize = 14.sp,
                                 color = Color(0xFF6B5F4A),
                                 lineHeight = 20.sp
@@ -265,6 +282,7 @@ fun PropertyDetailScreen(
                     // 3. BOTONES DE ACCIÓN (Fijos al final del scroll)
                     Button(
                         onClick = {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             val uri = Uri.parse("https://wa.me/5491112345678")
                             val intent = Intent(Intent.ACTION_VIEW, uri)
                             context.startActivity(intent)
@@ -284,13 +302,8 @@ fun PropertyDetailScreen(
 
                     OutlinedButton(
                         onClick = {
-                            try {
-                                val uri = Uri.parse("geo:0,0?q=${prop.zone}")
-                                val intent = Intent(Intent.ACTION_VIEW, uri)
-                                context.startActivity(intent)
-                            } catch (e: Exception) {
-                                Toast.makeText(context, "Funcionalidad en desarrollo", Toast.LENGTH_SHORT).show()
-                            }
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            Toast.makeText(context, "Funcionalidad en desarrollo - Disponible en el próximo Sprint", Toast.LENGTH_SHORT).show()
                         },
                         modifier = Modifier
                             .fillMaxWidth()
