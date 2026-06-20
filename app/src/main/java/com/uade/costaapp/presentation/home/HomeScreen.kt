@@ -1,5 +1,9 @@
 package com.uade.costaapp.presentation.home
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -97,57 +101,70 @@ fun HomeScreen(
                 propertiesCount = properties.size
             )
             
-            LazyColumn(
-                contentPadding = PaddingValues(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                item {
-                    Text(
-                        text = "Recomendamos para vos",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = DarkBlue,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                    )
-                    
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+            AnimatedContent(
+                targetState = properties.isEmpty() && searchQuery.isEmpty(),
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = "LoadingContent"
+            ) { isLoading ->
+                if (isLoading) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = BrandOrange)
+                    }
+                } else {
+                    LazyColumn(
+                        contentPadding = PaddingValues(start = 0.dp, top = 0.dp, end = 0.dp, bottom = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        items(recommendedProperties, key = { "rec_${it.id}" }) { property ->
-                            PropertyCard(
-                                property = property,
-                                modifier = Modifier.width(280.dp).animateItemPlacement(),
-                                onClick = { 
-                                    homeViewModel.markAsViewed(property.id)
-                                    onNavigateToDetail(property.id) 
-                                },
-                                onFavoriteClick = { homeViewModel.toggleFavorite(property) }
+                        item {
+                            Text(
+                                text = "Recomendamos para vos",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = DarkBlue,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                            )
+                            
+                            LazyRow(
+                                contentPadding = PaddingValues(horizontal = 16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                items(recommendedProperties, key = { "rec_${it.id}" }) { property ->
+                                    PropertyCard(
+                                        property = property,
+                                        modifier = Modifier.width(280.dp).animateItemPlacement(),
+                                        onClick = { 
+                                            homeViewModel.markAsViewed(property.id)
+                                            onNavigateToDetail(property.id) 
+                                        },
+                                        onFavoriteClick = { homeViewModel.toggleFavorite(property) }
+                                    )
+                                }
+                            }
+                            
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "Explorar",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = DarkBlue,
+                                modifier = Modifier.padding(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 8.dp)
                             )
                         }
-                    }
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "Explorar",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = DarkBlue,
-                        modifier = Modifier.padding(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 8.dp)
-                    )
-                }
 
-                items(properties, key = { "list_${it.id}" }) { property ->
-                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                        PropertyCard(
-                            property = property,
-                            modifier = Modifier.animateItemPlacement(),
-                            onClick = { 
-                                homeViewModel.markAsViewed(property.id)
-                                onNavigateToDetail(property.id) 
-                            },
-                            onFavoriteClick = { homeViewModel.toggleFavorite(property) }
-                        )
+                        items(properties, key = { "list_${it.id}" }) { property ->
+                            Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                                PropertyCard(
+                                    property = property,
+                                    modifier = Modifier.animateItemPlacement(),
+                                    onClick = { 
+                                        homeViewModel.markAsViewed(property.id)
+                                        onNavigateToDetail(property.id) 
+                                    },
+                                    onFavoriteClick = { homeViewModel.toggleFavorite(property) }
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -421,13 +438,13 @@ fun PropertyCard(
 fun InfoTag(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String) {
     Row(
         modifier = Modifier
-            .background(LightBlueAccent, RoundedCornerShape(6.dp))
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .background(LightBlueAccent, RoundedCornerShape(percent = 50))
+            .padding(horizontal = 12.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(icon, contentDescription = null, tint = DarkBlue, modifier = Modifier.size(14.dp))
         Spacer(modifier = Modifier.width(4.dp))
-        Text(text, color = DarkBlue, fontSize = 12.sp, fontWeight = FontWeight.Medium)
+        Text(text, color = DarkBlue, fontSize = 12.sp, fontWeight = FontWeight.Bold)
     }
 }
 
