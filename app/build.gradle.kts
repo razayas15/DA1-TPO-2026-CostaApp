@@ -55,10 +55,11 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
 
-    // Hilt
+    // Hilt & Navigation
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     implementation(libs.hilt.navigation.compose)
+    implementation(libs.androidx.navigation.compose)
 
     // Room
     implementation(libs.room.runtime)
@@ -74,11 +75,13 @@ dependencies {
     // Coil
     implementation(libs.coil.compose)
 
-    // Firebase
     // Firebase (Configuración moderna unificada sin sufijos -ktx)
     implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
+
+    // Gemini
+    implementation(libs.generativeai)
 
     // Credential Manager (Soporte oficial y selector flotante de Google Auth)
     implementation("androidx.credentials:credentials:1.2.2")

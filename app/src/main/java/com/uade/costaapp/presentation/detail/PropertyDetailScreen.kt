@@ -49,6 +49,7 @@ fun PropertyDetailScreen(
     viewModel: PropertyDetailViewModel = hiltViewModel()
 ) {
     val property by viewModel.property.collectAsStateWithLifecycle()
+    val aiState by viewModel.aiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
 
@@ -257,10 +258,10 @@ fun PropertyDetailScreen(
                     ) {
                         Column {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Build, contentDescription = "Under Construction", tint = BrandOrange, modifier = Modifier.size(20.dp))
+                                Icon(Icons.Default.Star, contentDescription = "IA", tint = BrandOrange, modifier = Modifier.size(20.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    text = "ANÁLISIS IA (PRÓXIMAMENTE)",
+                                    text = "ANÁLISIS IA",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = BrandOrange,
@@ -268,12 +269,40 @@ fun PropertyDetailScreen(
                                 )
                             }
                             Spacer(modifier = Modifier.height(12.dp))
-                            Text(
-                                text = "Funcionalidad en desarrollo - Disponible en el próximo Sprint.",
-                                fontSize = 14.sp,
-                                color = Color(0xFF6B5F4A),
-                                lineHeight = 20.sp
-                            )
+                            
+                            when (aiState) {
+                                is AiState.Idle -> {
+                                    Button(
+                                        onClick = { viewModel.analyzeProperty() },
+                                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = BrandOrange),
+                                        shape = RoundedCornerShape(8.dp)
+                                    ) {
+                                        Text("Generar Análisis", color = Color.White)
+                                    }
+                                }
+                                is AiState.Loading, is AiState.Thinking -> {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = BrandOrange, strokeWidth = 2.dp)
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Text("Analizando propiedad...", color = Color(0xFF6B5F4A), fontSize = 14.sp)
+                                    }
+                                }
+                                is AiState.Success -> {
+                                    Text(
+                                        text = (aiState as AiState.Success).text,
+                                        fontSize = 14.sp,
+                                        color = Color(0xFF6B5F4A),
+                                        lineHeight = 20.sp
+                                    )
+                                }
+                                is AiState.Error -> {
+                                    Text(
+                                        text = (aiState as AiState.Error).message,
+                                        color = Color.Red,
+                                        fontSize = 14.sp
+                                    )
+                                }
+                            }
                         }
                     }
 
