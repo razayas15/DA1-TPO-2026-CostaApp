@@ -46,6 +46,7 @@ import com.uade.costaapp.presentation.home.InfoTag
 fun PropertyDetailScreen(
     propertyId: String,
     onNavigateBack: () -> Unit,
+    onNavigateToMap: (Double, Double, String) -> Unit = { _, _, _ -> },
     viewModel: PropertyDetailViewModel = hiltViewModel()
 ) {
     val property by viewModel.property.collectAsStateWithLifecycle()
@@ -332,7 +333,7 @@ fun PropertyDetailScreen(
                     OutlinedButton(
                         onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            Toast.makeText(context, "Funcionalidad en desarrollo - Disponible en el próximo Sprint", Toast.LENGTH_SHORT).show()
+                            onNavigateToMap(prop.latitude, prop.longitude, prop.title)
                         },
                         modifier = Modifier
                             .fillMaxWidth()

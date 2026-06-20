@@ -83,6 +83,10 @@ dependencies {
     // Gemini
     implementation(libs.generativeai)
 
+    // Maps
+    implementation(libs.maps.compose)
+    implementation(libs.play.services.maps)
+
     // Credential Manager (Soporte oficial y selector flotante de Google Auth)
     implementation("androidx.credentials:credentials:1.2.2")
     implementation("androidx.credentials:credentials-play-services-auth:1.2.2")

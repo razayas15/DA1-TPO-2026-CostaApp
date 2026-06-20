@@ -13,7 +13,10 @@ import androidx.navigation.navArgument
 import com.uade.costaapp.presentation.auth.LoginScreen
 import com.uade.costaapp.presentation.detail.PropertyDetailScreen
 import com.uade.costaapp.presentation.home.HomeScreen
+import com.uade.costaapp.presentation.map.MapScreen
 import com.uade.costaapp.presentation.splash.SplashScreen
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun AppNavigation() {
@@ -79,6 +82,36 @@ fun AppNavigation() {
             val propertyId = backStackEntry.arguments?.getString("propertyId") ?: return@composable
             PropertyDetailScreen(
                 propertyId = propertyId,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToMap = { lat, lng, title ->
+                    val encodedTitle = java.net.URLEncoder.encode(title, StandardCharsets.UTF_8.toString())
+                    navController.navigate("map/$lat/$lng/$encodedTitle")
+                }
+            )
+        }
+
+        composable(
+            route = "map/{lat}/{lng}/{title}",
+            arguments = listOf(
+                navArgument("lat") { type = NavType.FloatType },
+                navArgument("lng") { type = NavType.FloatType },
+                navArgument("title") { type = NavType.StringType }
+            ),
+            enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up, animationSpec = tween(500)) },
+            exitTransition = { fadeOut(animationSpec = tween(500)) },
+            popEnterTransition = { fadeIn(animationSpec = tween(500)) },
+            popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Down, animationSpec = tween(500)) }
+        ) { backStackEntry ->
+            val lat = backStackEntry.arguments?.getFloat("lat")?.toDouble() ?: 0.0
+            val lng = backStackEntry.arguments?.getFloat("lng")?.toDouble() ?: 0.0
+            val title = backStackEntry.arguments?.getString("title")?.let { 
+                URLDecoder.decode(it, StandardCharsets.UTF_8.toString()) 
+            } ?: "Ubicación"
+            
+            MapScreen(
+                lat = lat,
+                lng = lng,
+                title = title,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
