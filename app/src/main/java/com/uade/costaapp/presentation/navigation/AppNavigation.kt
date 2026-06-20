@@ -67,6 +67,9 @@ fun AppNavigation() {
                 },
                 onNavigateToProfile = {
                     navController.navigate("profile")
+                },
+                onNavigateToMap = {
+                    navController.navigate("map")
                 }
             )
         }
@@ -83,36 +86,24 @@ fun AppNavigation() {
             PropertyDetailScreen(
                 propertyId = propertyId,
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToMap = { lat, lng, title ->
-                    val encodedTitle = java.net.URLEncoder.encode(title, StandardCharsets.UTF_8.toString())
-                    navController.navigate("map/$lat/$lng/$encodedTitle")
+                onNavigateToMap = { _, _, _ ->
+                    navController.navigate("map")
                 }
             )
         }
 
         composable(
-            route = "map/{lat}/{lng}/{title}",
-            arguments = listOf(
-                navArgument("lat") { type = NavType.FloatType },
-                navArgument("lng") { type = NavType.FloatType },
-                navArgument("title") { type = NavType.StringType }
-            ),
+            route = "map",
             enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up, animationSpec = tween(500)) },
             exitTransition = { fadeOut(animationSpec = tween(500)) },
             popEnterTransition = { fadeIn(animationSpec = tween(500)) },
             popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Down, animationSpec = tween(500)) }
-        ) { backStackEntry ->
-            val lat = backStackEntry.arguments?.getFloat("lat")?.toDouble() ?: 0.0
-            val lng = backStackEntry.arguments?.getFloat("lng")?.toDouble() ?: 0.0
-            val title = backStackEntry.arguments?.getString("title")?.let { 
-                URLDecoder.decode(it, StandardCharsets.UTF_8.toString()) 
-            } ?: "Ubicación"
-            
+        ) {
             MapScreen(
-                lat = lat,
-                lng = lng,
-                title = title,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDetail = { propertyId ->
+                    navController.navigate("detail/$propertyId")
+                }
             )
         }
 

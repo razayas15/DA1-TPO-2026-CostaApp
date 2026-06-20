@@ -55,6 +55,7 @@ fun HomeScreen(
     onNavigateToLogin: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
     onNavigateToProfile: () -> Unit,
+    onNavigateToMap: () -> Unit,
     authViewModel: AuthViewModel = hiltViewModel(),
     homeViewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -81,7 +82,7 @@ fun HomeScreen(
                 }
             ) 
         },
-        bottomBar = { HomeBottomNavigation() },
+        bottomBar = { HomeBottomNavigation(onNavigateToMap) },
         containerColor = LightGrayBackground
     ) { innerPadding ->
         Column(
@@ -449,7 +450,7 @@ fun InfoTag(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String)
 }
 
 @Composable
-fun HomeBottomNavigation() {
+fun HomeBottomNavigation(onNavigateToMap: () -> Unit) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
 
@@ -470,7 +471,7 @@ fun HomeBottomNavigation() {
             selected = false,
             onClick = { 
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                Toast.makeText(context, "Funcionalidad en desarrollo - Disponible en el próximo Sprint", Toast.LENGTH_SHORT).show() 
+                onNavigateToMap()
             },
             colors = NavigationBarItemDefaults.colors(unselectedIconColor = Color.Gray)
         )
