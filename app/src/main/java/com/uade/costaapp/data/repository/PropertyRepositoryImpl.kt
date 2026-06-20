@@ -6,9 +6,7 @@ import com.uade.costaapp.data.remote.CostaAppApiService
 import com.uade.costaapp.domain.repository.PropertyRepository
 import com.uade.costaapp.data.local.entity.PropertyEntity
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
-import java.io.IOException
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 class PropertyRepositoryImpl @Inject constructor(
@@ -17,19 +15,8 @@ class PropertyRepositoryImpl @Inject constructor(
     private val mapper: PropertyMapper
 ) : PropertyRepository {
 
-    private val inMemoryCache = MutableStateFlow<List<PropertyEntity>>(emptyList())
-
     override fun getAllProperties(): Flow<List<PropertyEntity>> {
-        return combine(inMemoryCache, dao.getAllProperties()) { memoryList, roomList ->
-            if (memoryList.isEmpty()) {
-                roomList
-            } else {
-                val roomMap = roomList.associateBy { it.id }
-                memoryList.map { memProp ->
-                    roomMap[memProp.id] ?: memProp
-                }
-            }
-        }
+        return dao.getAllProperties()
     }
 
     override suspend fun refreshProperties() {
@@ -37,23 +24,33 @@ class PropertyRepositoryImpl @Inject constructor(
             val response = api.getProperties()
             if (response.isSuccessful) {
                 response.body()?.let { dtos ->
-                    val entities = dtos.map { mapper.dtoToEntity(it) }
-                    inMemoryCache.value = entities
-                    dao.cleanupCache()
+                    // 1. Obtenemos el estado local actual para no pisar isFavorite y lastViewedAt
+                    val existingProps = dao.getAllProperties().first().associateBy { it.id }
+                    
+                    // 2. Mapeamos respetando el estado local
+                    val entities = dtos.map { dto ->
+                        val mapped = mapper.dtoToEntity(dto)
+                        val existing = existingProps[mapped.id]
+                        if (existing != null) {
+                            mapped.copy(
+                                isFavorite = existing.isFavorite,
+                                lastViewedAt = existing.lastViewedAt
+                            )
+                        } else {
+                            mapped
+                        }
+                    }
+                    // 3. UpsertAll puro en Room. Room es ahora el SSOT absoluto.
+                    dao.upsertAll(entities)
                 }
             }
         } catch (e: Exception) {
-            // Manejado silenciosamente, se mostrará Room
+            // Falla de red: manejado silenciosamente, Room sigue sirviendo los datos offline
         }
     }
 
     override suspend fun markAsViewed(id: String) {
-        val memProp = inMemoryCache.value.find { it.id == id }
-        if (memProp != null) {
-            dao.upsertAll(listOf(memProp.copy(lastViewedAt = System.currentTimeMillis())))
-        } else {
-            dao.markAsViewed(id, System.currentTimeMillis())
-        }
+        dao.markAsViewed(id, System.currentTimeMillis())
     }
 
     override fun getFavorites(): Flow<List<PropertyEntity>> {
@@ -61,18 +58,11 @@ class PropertyRepositoryImpl @Inject constructor(
     }
 
     override fun getPropertyById(id: String): Flow<PropertyEntity?> {
-        return combine(inMemoryCache, dao.getPropertyById(id)) { memoryList, roomProp ->
-            roomProp ?: memoryList.find { it.id == id }
-        }
+        return dao.getPropertyById(id)
     }
 
     override suspend fun updateFavorite(id: String, isFavorite: Boolean) {
-        val memProp = inMemoryCache.value.find { it.id == id }
-        if (memProp != null) {
-            dao.upsertAll(listOf(memProp.copy(isFavorite = isFavorite)))
-        } else {
-            dao.updateFavorite(id, isFavorite)
-        }
+        dao.updateFavorite(id, isFavorite)
     }
 
     override fun getFavoritesCount(): Flow<Int> = dao.getFavoritesCount()
