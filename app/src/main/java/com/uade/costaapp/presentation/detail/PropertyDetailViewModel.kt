@@ -3,6 +3,7 @@ package com.uade.costaapp.presentation.detail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.uade.costaapp.data.local.entity.PropertyEntity
+import com.uade.costaapp.data.remote.AiAnalysisData
 import com.uade.costaapp.data.remote.AiService
 import com.uade.costaapp.domain.repository.PropertyRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +20,7 @@ sealed class AiState {
     object Idle : AiState()
     object Loading : AiState()
     object Thinking : AiState()
-    data class Success(val text: String) : AiState()
+    data class Success(val data: AiAnalysisData) : AiState()
     data class Error(val message: String) : AiState()
 }
 

@@ -249,63 +249,10 @@ fun PropertyDetailScreen(
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    // Placeholder Análisis IA (Fondo crema, estética sugerente)
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(Color(0xFFF7F3EB), RoundedCornerShape(16.dp))
-                            .border(1.dp, Color(0xFFE8DFCD), RoundedCornerShape(16.dp))
-                            .padding(20.dp)
-                    ) {
-                        Column {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Star, contentDescription = "IA", tint = BrandOrange, modifier = Modifier.size(20.dp))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "ANÁLISIS IA",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = BrandOrange,
-                                    letterSpacing = 1.sp
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(12.dp))
-                            
-                            when (aiState) {
-                                is AiState.Idle -> {
-                                    Button(
-                                        onClick = { viewModel.analyzeProperty() },
-                                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = BrandOrange),
-                                        shape = RoundedCornerShape(8.dp)
-                                    ) {
-                                        Text("Generar Análisis", color = Color.White)
-                                    }
-                                }
-                                is AiState.Loading, is AiState.Thinking -> {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = BrandOrange, strokeWidth = 2.dp)
-                                        Spacer(modifier = Modifier.width(12.dp))
-                                        Text("Analizando propiedad...", color = Color(0xFF6B5F4A), fontSize = 14.sp)
-                                    }
-                                }
-                                is AiState.Success -> {
-                                    Text(
-                                        text = (aiState as AiState.Success).text,
-                                        fontSize = 14.sp,
-                                        color = Color(0xFF6B5F4A),
-                                        lineHeight = 20.sp
-                                    )
-                                }
-                                is AiState.Error -> {
-                                    Text(
-                                        text = (aiState as AiState.Error).message,
-                                        color = Color.Red,
-                                        fontSize = 14.sp
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    AiAnalysisCard(
+                        aiState = aiState,
+                        onGenerateClick = { viewModel.analyzeProperty() }
+                    )
 
                     Spacer(modifier = Modifier.height(40.dp))
 
@@ -353,6 +300,79 @@ fun PropertyDetailScreen(
         } ?: run {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = BrandOrange)
+            }
+        }
+    }
+}
+
+@Composable
+fun AiAnalysisCard(aiState: AiState, onGenerateClick: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE8DFCD))
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Star, contentDescription = "IA", tint = BrandOrange, modifier = Modifier.size(24.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "ANÁLISIS IA",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = BrandOrange,
+                    letterSpacing = 1.sp
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            when (aiState) {
+                is AiState.Idle -> {
+                    Button(
+                        onClick = onGenerateClick,
+                        colors = ButtonDefaults.buttonColors(containerColor = BrandOrange),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("Generar Análisis", color = Color.White)
+                    }
+                }
+                is AiState.Loading, is AiState.Thinking -> {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = BrandOrange, strokeWidth = 2.dp)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("Analizando propiedad...", color = Color.DarkGray, fontSize = 14.sp)
+                    }
+                }
+                is AiState.Success -> {
+                    Column {
+                        Text(aiState.data.summary, color = Color.DarkGray, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        aiState.data.positives.forEach { text ->
+                            Row(modifier = Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.Top) {
+                                Icon(Icons.Default.CheckCircle, contentDescription = "Positivo", tint = Color(0xFF4CAF50), modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(text, color = Color.DarkGray, fontSize = 14.sp)
+                            }
+                        }
+                        
+                        aiState.data.warnings.forEach { text ->
+                            Row(modifier = Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.Top) {
+                                Icon(Icons.Default.Warning, contentDescription = "Advertencia", tint = Color(0xFFFF9800), modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(text, color = Color.DarkGray, fontSize = 14.sp)
+                            }
+                        }
+                    }
+                }
+                is AiState.Error -> {
+                    Text(
+                        text = aiState.message,
+                        color = Color.Red,
+                        fontSize = 14.sp
+                    )
+                }
             }
         }
     }
