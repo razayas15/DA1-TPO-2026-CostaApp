@@ -31,6 +31,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import android.widget.Toast
 import coil.compose.rememberAsyncImagePainter
 import com.uade.costaapp.data.local.entity.PropertyEntity
 import com.uade.costaapp.presentation.auth.AuthViewModel
@@ -40,6 +45,7 @@ val BrandOrange = Color(0xFFE05E36)
 val LightGrayBackground = Color(0xFFF5F6F8)
 val LightBlueAccent = Color(0xFFE3F2FD)
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     onNavigateToLogin: () -> Unit,
@@ -108,17 +114,16 @@ fun HomeScreen(
                         contentPadding = PaddingValues(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        items(recommendedProperties) { property ->
-                            Box(modifier = Modifier.width(280.dp)) {
-                                PropertyCard(
-                                    property = property, 
-                                    onClick = { 
-                                        homeViewModel.markAsViewed(it)
-                                        onNavigateToDetail(it) 
-                                    },
-                                    onFavoriteClick = { homeViewModel.toggleFavorite(it) }
-                                )
-                            }
+                        items(recommendedProperties, key = { "rec_${it.id}" }) { property ->
+                            PropertyCard(
+                                property = property,
+                                modifier = Modifier.width(280.dp).animateItemPlacement(),
+                                onClick = { 
+                                    homeViewModel.markAsViewed(property.id)
+                                    onNavigateToDetail(property.id) 
+                                },
+                                onFavoriteClick = { homeViewModel.toggleFavorite(property) }
+                            )
                         }
                     }
                     
@@ -132,15 +137,16 @@ fun HomeScreen(
                     )
                 }
 
-                items(properties) { property ->
+                items(properties, key = { "list_${it.id}" }) { property ->
                     Box(modifier = Modifier.padding(horizontal = 16.dp)) {
                         PropertyCard(
-                            property = property, 
+                            property = property,
+                            modifier = Modifier.animateItemPlacement(),
                             onClick = { 
-                                homeViewModel.markAsViewed(it)
-                                onNavigateToDetail(it) 
+                                homeViewModel.markAsViewed(property.id)
+                                onNavigateToDetail(property.id) 
                             },
-                            onFavoriteClick = { homeViewModel.toggleFavorite(it) }
+                            onFavoriteClick = { homeViewModel.toggleFavorite(property) }
                         )
                     }
                 }
@@ -317,14 +323,17 @@ fun FilterDropdown(options: List<String>, selectedOption: String, onOptionSelect
 @Composable
 fun PropertyCard(
     property: PropertyEntity, 
+    modifier: Modifier = Modifier,
     onClick: (String) -> Unit,
     onFavoriteClick: (PropertyEntity) -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
+
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { onClick(property.id) }
     ) {
@@ -351,8 +360,8 @@ fun PropertyCard(
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .padding(12.dp)
-                        .background(tagColor, RoundedCornerShape(6.dp))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                        .background(tagColor, RoundedCornerShape(percent = 50))
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
                 )
 
                 Box(
@@ -361,13 +370,16 @@ fun PropertyCard(
                         .padding(12.dp)
                         .size(36.dp)
                         .background(Color.White.copy(alpha = 0.8f), CircleShape)
-                        .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { onFavoriteClick(property) },
+                        .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { 
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onFavoriteClick(property) 
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = if (property.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = "Favorite",
-                        tint = if (property.isFavorite) Color.Red else Color.Gray,
+                        tint = if (property.isFavorite) BrandOrange else Color.Gray,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -421,6 +433,9 @@ fun InfoTag(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String)
 
 @Composable
 fun HomeBottomNavigation() {
+    val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
+
     NavigationBar(
         containerColor = Color.White,
         contentColor = DarkBlue
@@ -429,21 +444,27 @@ fun HomeBottomNavigation() {
             icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
             label = { Text("Inicio") },
             selected = true,
-            onClick = { },
+            onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress) },
             colors = NavigationBarItemDefaults.colors(selectedIconColor = BrandOrange, unselectedIconColor = Color.Gray)
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.LocationOn, contentDescription = "Mapa") },
             label = { Text("Mapa") },
             selected = false,
-            onClick = { },
+            onClick = { 
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                Toast.makeText(context, "Funcionalidad en desarrollo - Disponible en el próximo Sprint", Toast.LENGTH_SHORT).show() 
+            },
             colors = NavigationBarItemDefaults.colors(unselectedIconColor = Color.Gray)
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.FavoriteBorder, contentDescription = "Favoritos") },
             label = { Text("Favoritos") },
             selected = false,
-            onClick = { },
+            onClick = { 
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                // En el diseño final se podría navegar a Favoritos aquí, pero mantenemos la lógica actual en Profile
+            },
             colors = NavigationBarItemDefaults.colors(unselectedIconColor = Color.Gray)
         )
     }
