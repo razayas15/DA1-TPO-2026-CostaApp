@@ -31,6 +31,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -137,10 +138,10 @@ fun MapScreen(
             } else {
                 // Mostrar Mapa
                 val hasTarget = targetLat != null && targetLng != null
-                val centerLocation = if (hasTarget) LatLng(targetLat!!, targetLng!!) else LatLng(-37.114967, -56.866525) // Pinamar
+                val centerLocation = LatLng(-37.114967, -56.866525) // Pinamar
                 
                 val cameraPositionState = rememberCameraPositionState {
-                    position = CameraPosition.fromLatLngZoom(centerLocation, if (hasTarget) 15f else 12.5f)
+                    position = CameraPosition.fromLatLngZoom(centerLocation, 12.5f)
                 }
                 
                 var isMapLoaded by remember { mutableStateOf(false) }
@@ -150,6 +151,24 @@ fun MapScreen(
                 LaunchedEffect(Unit) {
                     kotlinx.coroutines.delay(400)
                     showMap = true
+                }
+                
+                // Auto-selección y animación de cámara
+                LaunchedEffect(isMapLoaded, targetLat, targetLng, properties) {
+                    if (isMapLoaded && hasTarget && properties.isNotEmpty()) {
+                        val propertyEncontrada = properties.find { 
+                            kotlin.math.abs(it.latitude - targetLat!!) < 0.0001 && 
+                            kotlin.math.abs(it.longitude - targetLng!!) < 0.0001
+                        }
+                        if (propertyEncontrada != null) {
+                            selectedProperty = propertyEncontrada
+                            val update = CameraUpdateFactory.newLatLngZoom(
+                                LatLng(propertyEncontrada.latitude, propertyEncontrada.longitude), 
+                                16f
+                            )
+                            cameraPositionState.animate(update, 1500) // 1.5s fluid animation
+                        }
+                    }
                 }
 
                 Box(modifier = Modifier.fillMaxSize()) {
@@ -201,7 +220,7 @@ fun MapScreen(
                         contentAlignment = Alignment.BottomCenter
                     ) {
                         Card(
-                            shape = RoundedCornerShape(16.dp),
+                            shape = RoundedCornerShape(24.dp),
                             colors = CardDefaults.cardColors(containerColor = Color.White),
                             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
                             modifier = Modifier
