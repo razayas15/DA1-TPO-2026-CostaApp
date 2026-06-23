@@ -322,7 +322,10 @@ fun AiAnalysisCard(aiState: AiState, onGenerateClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
         border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE8DFCD))
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
@@ -360,19 +363,19 @@ fun AiAnalysisCard(aiState: AiState, onGenerateClick: () -> Unit) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             CircularProgressIndicator(modifier = Modifier.size(24.dp), color = BrandOrange, strokeWidth = 2.dp)
                             Spacer(modifier = Modifier.width(12.dp))
-                            Text("Analizando propiedad...", color = Color.DarkGray, fontSize = 14.sp)
+                            Text("Analizando propiedad...", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                     is AiState.Success -> {
                         Column {
-                            Text(state.data.summary, color = Color.DarkGray, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Text(state.data.summary, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(modifier = Modifier.height(12.dp))
                             
                             state.data.positives.forEach { text ->
                                 Row(modifier = Modifier.padding(vertical = 6.dp), verticalAlignment = Alignment.Top) {
                                     Icon(Icons.Default.CheckCircle, contentDescription = "Positivo", tint = Color(0xFF4CAF50), modifier = Modifier.size(20.dp))
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text(text, color = Color.DarkGray, fontSize = 14.sp)
+                                    Text(text, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
                         }

@@ -118,6 +118,17 @@ fun AppNavigation() {
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToDetail = { propertyId ->
                     navController.navigate("detail/$propertyId")
+                },
+                onNavigateToHome = {
+                    navController.navigate("home") {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                onNavigateToFavorites = {
+                    navController.navigate("favorites") {
+                        popUpTo("home") { inclusive = false }
+                        launchSingleTop = true
+                    }
                 }
             )
         }

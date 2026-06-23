@@ -98,7 +98,7 @@ fun HomeScreen(
                 }
             ) 
         },
-        bottomBar = { HomeBottomNavigation(onNavigateToMap, onNavigateToFavorites) },
+        bottomBar = { HomeBottomNavigation(currentRoute = "home", onNavigateToMap = onNavigateToMap, onNavigateToFavorites = onNavigateToFavorites) },
         containerColor = LightGrayBackground
     ) { innerPadding ->
         Column(
@@ -466,7 +466,12 @@ fun InfoTag(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String)
 }
 
 @Composable
-fun HomeBottomNavigation(onNavigateToMap: () -> Unit, onNavigateToFavorites: () -> Unit) {
+fun HomeBottomNavigation(
+    currentRoute: String = "home",
+    onNavigateToHome: () -> Unit = {},
+    onNavigateToMap: () -> Unit = {}, 
+    onNavigateToFavorites: () -> Unit = {}
+) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
 
@@ -477,27 +482,30 @@ fun HomeBottomNavigation(onNavigateToMap: () -> Unit, onNavigateToFavorites: () 
         NavigationBarItem(
             icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
             label = { Text("Inicio") },
-            selected = true,
-            onClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress) },
+            selected = currentRoute == "home",
+            onClick = { 
+                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                if (currentRoute != "home") onNavigateToHome()
+            },
             colors = NavigationBarItemDefaults.colors(selectedIconColor = BrandOrange, unselectedIconColor = Color.Gray)
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.LocationOn, contentDescription = "Mapa") },
             label = { Text("Mapa") },
-            selected = false,
+            selected = currentRoute == "map",
             onClick = { 
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                onNavigateToMap()
+                if (currentRoute != "map") onNavigateToMap()
             },
             colors = NavigationBarItemDefaults.colors(unselectedIconColor = Color.Gray)
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.FavoriteBorder, contentDescription = "Favoritos") },
             label = { Text("Favoritos") },
-            selected = false,
+            selected = currentRoute == "favorites",
             onClick = { 
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                onNavigateToFavorites()
+                if (currentRoute != "favorites") onNavigateToFavorites()
             },
             colors = NavigationBarItemDefaults.colors(unselectedIconColor = Color.Gray)
         )

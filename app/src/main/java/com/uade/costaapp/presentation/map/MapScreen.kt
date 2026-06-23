@@ -47,6 +47,8 @@ fun MapScreen(
     targetLng: Double? = null,
     onNavigateBack: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
+    onNavigateToHome: () -> Unit = {},
+    onNavigateToFavorites: () -> Unit = {},
     homeViewModel: HomeViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -92,6 +94,14 @@ fun MapScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+            )
+        },
+        bottomBar = {
+            com.uade.costaapp.presentation.home.HomeBottomNavigation(
+                currentRoute = "map",
+                onNavigateToHome = onNavigateToHome,
+                onNavigateToMap = {}, 
+                onNavigateToFavorites = onNavigateToFavorites
             )
         }
     ) { innerPadding ->
