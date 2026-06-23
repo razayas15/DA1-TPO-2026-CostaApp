@@ -26,8 +26,7 @@ sealed class AiState {
 
 @HiltViewModel
 class PropertyDetailViewModel @Inject constructor(
-    private val repository: PropertyRepository,
-    private val aiService: AiService
+    private val repository: PropertyRepository
 ) : ViewModel() {
 
     private val _property = MutableStateFlow<PropertyEntity?>(null)
@@ -66,8 +65,10 @@ class PropertyDetailViewModel @Inject constructor(
             delay(1500) // Sensación de pensando
             try {
                 val prompt = "Genera 3 puntos fuertes atractivos de esta propiedad basados en sus datos, en formato de viñetas cortas. Propiedad: ${currentProperty.title}, ${currentProperty.rooms} amb, ${currentProperty.surface} m2, Precio: ${currentProperty.price} USD. No incluyas desventajas."
-                val result = aiService.getAnalysis(prompt)
+                val result = repository.generarAnalisisIA(prompt)
                 _aiState.value = AiState.Success(result)
+            } catch (e: com.uade.costaapp.utils.NoInternetException) {
+                _aiState.value = AiState.Error("No hay conexión a internet")
             } catch (e: Exception) {
                 _aiState.value = AiState.Error("Error al analizar la propiedad.")
             }

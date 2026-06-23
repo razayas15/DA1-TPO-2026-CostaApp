@@ -75,8 +75,10 @@ object DataModule {
         dao: PropertyDao,
         mapper: PropertyMapper,
         auth: FirebaseAuth,
-        firestore: FirebaseFirestore
+        firestore: FirebaseFirestore,
+        aiService: com.uade.costaapp.data.remote.AiService,
+        @ApplicationContext context: Context
     ): PropertyRepository {
-        return PropertyRepositoryImpl(api, dao, mapper, auth, firestore)
+        return PropertyRepositoryImpl(api, dao, mapper, auth, firestore, aiService, context)
     }
 }

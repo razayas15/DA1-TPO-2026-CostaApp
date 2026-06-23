@@ -14,6 +14,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import android.content.Context
+import android.util.Log
+import dagger.hilt.android.qualifiers.ApplicationContext
+import com.uade.costaapp.data.remote.AiService
+import com.uade.costaapp.data.remote.AiAnalysisData
+import com.uade.costaapp.utils.NetworkUtils
+import com.uade.costaapp.utils.NoInternetException
 import javax.inject.Inject
 
 class PropertyRepositoryImpl @Inject constructor(
@@ -21,7 +28,9 @@ class PropertyRepositoryImpl @Inject constructor(
     private val dao: PropertyDao,
     private val mapper: PropertyMapper,
     private val auth: FirebaseAuth,
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val aiService: AiService,
+    @ApplicationContext private val context: Context
 ) : PropertyRepository {
 
     override fun getAllProperties(): Flow<List<PropertyEntity>> {
@@ -106,13 +115,18 @@ class PropertyRepositoryImpl @Inject constructor(
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val userRef = firestore.collection("users").document(userId)
+                    val snapshot = userRef.get().await()
+                    if (!snapshot.exists()) {
+                        userRef.set(mapOf("favorite_property_ids" to emptyList<String>())).await()
+                    }
+                    
                     if (isFavorite) {
-                        userRef.update("favorite_property_ids", FieldValue.arrayUnion(id))
+                        userRef.update("favorite_property_ids", FieldValue.arrayUnion(id)).await()
                     } else {
-                        userRef.update("favorite_property_ids", FieldValue.arrayRemove(id))
+                        userRef.update("favorite_property_ids", FieldValue.arrayRemove(id)).await()
                     }
                 } catch (e: Exception) {
-                    // Fallo silencioso offline
+                    Log.e("PropertyRepositoryImpl", "Fallo silencioso offline al sincronizar favoritos: ${e.message}")
                 }
             }
         }
@@ -120,4 +134,11 @@ class PropertyRepositoryImpl @Inject constructor(
 
     override fun getFavoritesCount(): Flow<Int> = dao.getFavoritesCount()
     override fun getViewedCount(): Flow<Int> = dao.getViewedCount()
+
+    override suspend fun generarAnalisisIA(prompt: String): AiAnalysisData {
+        if (!NetworkUtils.isNetworkAvailable(context)) {
+            throw NoInternetException()
+        }
+        return aiService.getAnalysis(prompt)
+    }
 }

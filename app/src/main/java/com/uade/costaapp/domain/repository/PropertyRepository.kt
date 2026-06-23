@@ -12,4 +12,5 @@ interface PropertyRepository {
     suspend fun markAsViewed(id: String)
     fun getFavoritesCount(): Flow<Int>
     fun getViewedCount(): Flow<Int>
+    suspend fun generarAnalisisIA(prompt: String): com.uade.costaapp.data.remote.AiAnalysisData
 }
