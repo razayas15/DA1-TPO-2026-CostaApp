@@ -8,7 +8,8 @@ class PropertyMapper @Inject constructor() {
     fun dtoToEntity(dto: PropertyDto): PropertyEntity = PropertyEntity(
         id            = dto.id,
         title         = dto.title,
-        description   = "", // No provisto por la API actual
+        description   = dto.description ?: "Hermosa propiedad ubicada en la costa. Ideal para disfrutar en familia o como inversión.",
+        images        = dto.images,
         price         = dto.price,
         currency      = dto.currency,
         zone          = dto.location.zone,

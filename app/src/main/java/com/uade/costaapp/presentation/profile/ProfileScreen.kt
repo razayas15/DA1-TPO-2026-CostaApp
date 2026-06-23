@@ -31,6 +31,7 @@ import com.uade.costaapp.presentation.home.DarkBlue
 fun ProfileScreen(
     onNavigateBack: () -> Unit,
     onNavigateToFavorites: () -> Unit,
+    onNavigateToMap: () -> Unit,
     onLogoutSuccess: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
@@ -134,7 +135,7 @@ fun ProfileScreen(
                     NavigationItem(
                         icon = Icons.Default.LocationOn,
                         title = "Ver Mapa",
-                        onClick = { /* Próxima iteración */ }
+                        onClick = onNavigateToMap
                     )
                 }
             }

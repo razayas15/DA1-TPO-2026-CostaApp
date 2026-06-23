@@ -69,7 +69,10 @@ fun AppNavigation() {
                     navController.navigate("profile")
                 },
                 onNavigateToMap = {
-                    navController.navigate("map")
+                    navController.navigate("map") { launchSingleTop = true }
+                },
+                onNavigateToFavorites = {
+                    navController.navigate("favorites") { launchSingleTop = true }
                 }
             )
         }
@@ -87,7 +90,7 @@ fun AppNavigation() {
                 propertyId = propertyId,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToMap = { _, _, _ ->
-                    navController.navigate("map")
+                    navController.navigate("map") { launchSingleTop = true }
                 }
             )
         }
@@ -111,6 +114,7 @@ fun AppNavigation() {
             com.uade.costaapp.presentation.profile.ProfileScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToFavorites = { navController.navigate("favorites") },
+                onNavigateToMap = { navController.navigate("map") { launchSingleTop = true } },
                 onLogoutSuccess = {
                     navController.navigate("login") {
                         popUpTo(0) { inclusive = true }

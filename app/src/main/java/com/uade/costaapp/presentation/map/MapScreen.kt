@@ -123,12 +123,10 @@ fun MapScreen(
                 }
             } else {
                 // Mostrar Mapa
-                val centerLocation = if (properties.isNotEmpty()) {
-                    LatLng(properties[0].latitude, properties[0].longitude)
-                } else LatLng(-37.1141, -56.8626) // Pinamar default
+                val centerLocation = LatLng(-37.114967, -56.866525) // Pinamar
                 
                 val cameraPositionState = rememberCameraPositionState {
-                    position = CameraPosition.fromLatLngZoom(centerLocation, 13f)
+                    position = CameraPosition.fromLatLngZoom(centerLocation, 12.5f)
                 }
                 
                 GoogleMap(

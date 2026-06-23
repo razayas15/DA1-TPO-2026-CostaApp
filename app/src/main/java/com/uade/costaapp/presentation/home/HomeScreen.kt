@@ -56,6 +56,7 @@ fun HomeScreen(
     onNavigateToDetail: (String) -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToMap: () -> Unit,
+    onNavigateToFavorites: () -> Unit,
     authViewModel: AuthViewModel = hiltViewModel(),
     homeViewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -82,7 +83,7 @@ fun HomeScreen(
                 }
             ) 
         },
-        bottomBar = { HomeBottomNavigation(onNavigateToMap) },
+        bottomBar = { HomeBottomNavigation(onNavigateToMap, onNavigateToFavorites) },
         containerColor = LightGrayBackground
     ) { innerPadding ->
         Column(
@@ -450,7 +451,7 @@ fun InfoTag(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String)
 }
 
 @Composable
-fun HomeBottomNavigation(onNavigateToMap: () -> Unit) {
+fun HomeBottomNavigation(onNavigateToMap: () -> Unit, onNavigateToFavorites: () -> Unit) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
 
@@ -481,7 +482,7 @@ fun HomeBottomNavigation(onNavigateToMap: () -> Unit) {
             selected = false,
             onClick = { 
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                // En el diseño final se podría navegar a Favoritos aquí, pero mantenemos la lógica actual en Profile
+                onNavigateToFavorites()
             },
             colors = NavigationBarItemDefaults.colors(unselectedIconColor = Color.Gray)
         )

@@ -65,9 +65,8 @@ fun PropertyDetailScreen(
             .background(Color(0xFFF8F9FA))
     ) {
         property?.let { prop ->
-            // Simulamos 3 imágenes duplicando prop.imageUrl para probar el Pager
-            val mockImages = listOf(prop.imageUrl, prop.imageUrl, prop.imageUrl)
-            val pagerState = rememberPagerState(pageCount = { mockImages.size })
+            val images = if (!prop.images.isNullOrEmpty()) prop.images else listOf(prop.imageUrl)
+            val pagerState = rememberPagerState(pageCount = { images.size })
 
             Column(
                 modifier = Modifier
@@ -85,7 +84,7 @@ fun PropertyDetailScreen(
                         modifier = Modifier.fillMaxSize()
                     ) { page ->
                         AsyncImage(
-                            model = mockImages[page],
+                            model = images[page],
                             contentDescription = "Imagen de la propiedad $page",
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
@@ -99,7 +98,7 @@ fun PropertyDetailScreen(
                             .padding(bottom = 16.dp),
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        repeat(mockImages.size) { iteration ->
+                        repeat(images.size) { iteration ->
                             val color = if (pagerState.currentPage == iteration) Color.White else Color.White.copy(alpha = 0.5f)
                             Box(
                                 modifier = Modifier
@@ -223,7 +222,16 @@ fun PropertyDetailScreen(
                         Text(text = prop.zone, fontSize = 16.sp, color = Color.Gray)
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    if (!prop.description.isNullOrBlank()) {
+                        Text(
+                            text = prop.description,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
 
                     // Grilla de Atributos (Cápsulas Horizontales)
                     Row(
@@ -236,16 +244,6 @@ fun PropertyDetailScreen(
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))
-
-                    // Descripción Clásica
-                    Text(text = "Descripción", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = DarkBlue)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = prop.description,
-                        fontSize = 15.sp,
-                        color = Color.DarkGray,
-                        lineHeight = 24.sp
-                    )
 
                     Spacer(modifier = Modifier.height(32.dp))
 

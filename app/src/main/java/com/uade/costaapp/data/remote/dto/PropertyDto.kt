@@ -6,7 +6,9 @@ data class PropertyDto(
     val price: Double,
     val currency: String,
     val operationType: String,
+    val description: String? = null,
     val thumbnail: String?,
+    val images: List<String>? = null,
     val location: LocationDto,
     val attributes: AttributesDto
 )

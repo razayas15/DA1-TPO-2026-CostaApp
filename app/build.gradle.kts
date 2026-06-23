@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
-    id("com.google.gms.google-services") // ← Dejá solo este id tradicional
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -18,6 +18,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // CORRECCIÓN: "GEMINI_API_KEY" es el nombre de la constante que usarás en tu código.
+        // No pongas la API KEY ahí dentro, eso va en local.properties.
+        buildConfigField("String", "GEMINI_API_KEY", "\"${project.findProperty("GEMINI_API_KEY") ?: ""}\"")
     }
 
     buildTypes {
@@ -29,20 +33,27 @@ android {
             )
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
     kotlinOptions {
         jvmTarget = "17"
     }
+
     buildFeatures {
         compose = true
+        buildConfig = true // <--- ¡ESTO ERA LO QUE FALTABA!
     }
+
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.11"
     }
 }
+
+// ... (El resto de tus dependencias está perfecto)
 
 dependencies {
     implementation(libs.androidx.core.ktx)
