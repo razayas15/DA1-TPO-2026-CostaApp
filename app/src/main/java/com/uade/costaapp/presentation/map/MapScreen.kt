@@ -43,6 +43,8 @@ import com.uade.costaapp.presentation.home.HomeViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
+    targetLat: Double? = null,
+    targetLng: Double? = null,
     onNavigateBack: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
     homeViewModel: HomeViewModel = hiltViewModel()
@@ -124,22 +126,31 @@ fun MapScreen(
                 }
             } else {
                 // Mostrar Mapa
-                val centerLocation = LatLng(-37.114967, -56.866525) // Pinamar
+                val hasTarget = targetLat != null && targetLng != null
+                val centerLocation = if (hasTarget) LatLng(targetLat!!, targetLng!!) else LatLng(-37.114967, -56.866525) // Pinamar
                 
                 val cameraPositionState = rememberCameraPositionState {
-                    position = CameraPosition.fromLatLngZoom(centerLocation, 12.5f)
+                    position = CameraPosition.fromLatLngZoom(centerLocation, if (hasTarget) 15f else 12.5f)
                 }
                 
                 var isMapLoaded by remember { mutableStateOf(false) }
+                var showMap by remember { mutableStateOf(false) }
+                
+                // Delay renderizado inicial para que la animación de navegación termine suavemente
+                LaunchedEffect(Unit) {
+                    kotlinx.coroutines.delay(400)
+                    showMap = true
+                }
 
                 Box(modifier = Modifier.fillMaxSize()) {
-                    GoogleMap(
-                        modifier = Modifier.fillMaxSize(),
-                        cameraPositionState = cameraPositionState,
-                        onMapLoaded = { isMapLoaded = true },
-                        onMapClick = { selectedProperty = null }
-                    ) {
-                    properties.forEach { property ->
+                    if (showMap) {
+                        GoogleMap(
+                            modifier = Modifier.fillMaxSize(),
+                            cameraPositionState = cameraPositionState,
+                            onMapLoaded = { isMapLoaded = true },
+                            onMapClick = { selectedProperty = null }
+                        ) {
+                            properties.forEach { property ->
                         val position = LatLng(property.latitude, property.longitude)
                         Marker(
                             state = MarkerState(position = position),
@@ -149,8 +160,9 @@ fun MapScreen(
                                 true // Consume event to prevent native info window
                             }
                         )
+                            }
+                        }
                     }
-                }
 
                 androidx.compose.animation.AnimatedVisibility(
                     visible = !isMapLoaded,

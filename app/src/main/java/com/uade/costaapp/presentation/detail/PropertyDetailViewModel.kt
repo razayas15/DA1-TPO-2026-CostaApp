@@ -65,7 +65,7 @@ class PropertyDetailViewModel @Inject constructor(
             _aiState.value = AiState.Thinking
             delay(1500) // Sensación de pensando
             try {
-                val prompt = "Analiza esta propiedad: ${currentProperty.title} en ${currentProperty.zone} por ${currentProperty.price} USD."
+                val prompt = "Genera 3 puntos fuertes atractivos de esta propiedad basados en sus datos, en formato de viñetas cortas. Propiedad: ${currentProperty.title}, ${currentProperty.rooms} amb, ${currentProperty.surface} m2, Precio: ${currentProperty.price} USD. No incluyas desventajas."
                 val result = aiService.getAnalysis(prompt)
                 _aiState.value = AiState.Success(result)
             } catch (e: Exception) {

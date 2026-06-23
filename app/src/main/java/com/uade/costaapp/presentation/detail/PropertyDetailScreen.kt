@@ -5,6 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -327,60 +330,60 @@ fun AiAnalysisCard(aiState: AiState, onGenerateClick: () -> Unit) {
                 Icon(Icons.Default.Star, contentDescription = "IA", tint = BrandOrange, modifier = Modifier.size(24.dp))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "ANÁLISIS IA",
-                    fontSize = 16.sp,
+                    text = "Análisis Inteligente",
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = BrandOrange,
-                    letterSpacing = 1.sp
+                    letterSpacing = 0.5.sp
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
             
-            when (aiState) {
-                is AiState.Idle -> {
-                    Button(
-                        onClick = onGenerateClick,
-                        colors = ButtonDefaults.buttonColors(containerColor = BrandOrange),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text("Generar Análisis", color = Color.White)
-                    }
-                }
-                is AiState.Loading, is AiState.Thinking -> {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = BrandOrange, strokeWidth = 2.dp)
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text("Analizando propiedad...", color = Color.DarkGray, fontSize = 14.sp)
-                    }
-                }
-                is AiState.Success -> {
-                    Column {
-                        Text(aiState.data.summary, color = Color.DarkGray, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                        Spacer(modifier = Modifier.height(12.dp))
-                        
-                        aiState.data.positives.forEach { text ->
-                            Row(modifier = Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.Top) {
-                                Icon(Icons.Default.CheckCircle, contentDescription = "Positivo", tint = Color(0xFF4CAF50), modifier = Modifier.size(20.dp))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(text, color = Color.DarkGray, fontSize = 14.sp)
-                            }
-                        }
-                        
-                        aiState.data.warnings.forEach { text ->
-                            Row(modifier = Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.Top) {
-                                Icon(Icons.Default.Warning, contentDescription = "Advertencia", tint = Color(0xFFFF9800), modifier = Modifier.size(20.dp))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(text, color = Color.DarkGray, fontSize = 14.sp)
-                            }
+            androidx.compose.animation.AnimatedContent(
+                targetState = aiState,
+                transitionSpec = {
+                    androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(600)) togetherWith androidx.compose.animation.fadeOut(animationSpec = androidx.compose.animation.core.tween(300))
+                },
+                label = "AiStateTransition"
+            ) { state ->
+                when (state) {
+                    is AiState.Idle -> {
+                        Button(
+                            onClick = onGenerateClick,
+                            colors = ButtonDefaults.buttonColors(containerColor = BrandOrange),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("Generar Análisis", color = Color.White)
                         }
                     }
-                }
-                is AiState.Error -> {
-                    Text(
-                        text = aiState.message,
-                        color = Color.Red,
-                        fontSize = 14.sp
-                    )
+                    is AiState.Loading, is AiState.Thinking -> {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = BrandOrange, strokeWidth = 2.dp)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text("Analizando propiedad...", color = Color.DarkGray, fontSize = 14.sp)
+                        }
+                    }
+                    is AiState.Success -> {
+                        Column {
+                            Text(state.data.summary, color = Color.DarkGray, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.height(12.dp))
+                            
+                            state.data.positives.forEach { text ->
+                                Row(modifier = Modifier.padding(vertical = 6.dp), verticalAlignment = Alignment.Top) {
+                                    Icon(Icons.Default.CheckCircle, contentDescription = "Positivo", tint = Color(0xFF4CAF50), modifier = Modifier.size(20.dp))
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(text, color = Color.DarkGray, fontSize = 14.sp)
+                                }
+                            }
+                        }
+                    }
+                    is AiState.Error -> {
+                        Text(
+                            text = state.message,
+                            color = Color.Red,
+                            fontSize = 14.sp
+                        )
+                    }
                 }
             }
         }

@@ -89,20 +89,32 @@ fun AppNavigation() {
             PropertyDetailScreen(
                 propertyId = propertyId,
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToMap = { _, _, _ ->
-                    navController.navigate("map") { launchSingleTop = true }
+                onNavigateToMap = { lat, lng, _ ->
+                    navController.navigate("map?lat=$lat&lng=$lng") { launchSingleTop = true }
                 }
             )
         }
 
         composable(
-            route = "map",
+            route = "map?lat={lat}&lng={lng}",
+            arguments = listOf(
+                navArgument("lat") { type = NavType.StringType; nullable = true },
+                navArgument("lng") { type = NavType.StringType; nullable = true }
+            ),
             enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up, animationSpec = tween(500)) },
             exitTransition = { fadeOut(animationSpec = tween(500)) },
             popEnterTransition = { fadeIn(animationSpec = tween(500)) },
             popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Down, animationSpec = tween(500)) }
-        ) {
+        ) { backStackEntry ->
+            val latStr = backStackEntry.arguments?.getString("lat")
+            val lngStr = backStackEntry.arguments?.getString("lng")
+            
+            val targetLat = latStr?.toDoubleOrNull()
+            val targetLng = lngStr?.toDoubleOrNull()
+            
             MapScreen(
+                targetLat = targetLat,
+                targetLng = targetLng,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToDetail = { propertyId ->
                     navController.navigate("detail/$propertyId")
