@@ -23,6 +23,9 @@ class HomeViewModel @Inject constructor(
     private val _selectedSort = MutableStateFlow("Relevancia")
     val selectedSort = _selectedSort.asStateFlow()
 
+    private val _isOffline = MutableStateFlow(false)
+    val isOffline = _isOffline.asStateFlow()
+
     private val allProperties = repository.getAllProperties()
 
     val recommendedProperties: StateFlow<List<PropertyEntity>> = allProperties
@@ -79,12 +82,15 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 repository.refreshProperties() // Intenta traer el JSON de GitHub
+                _isOffline.value = false
             } catch (e: Exception) {
-                // Modo Offline: Si no hay internet, no fallamos. 
-                // Los flujos reactivos de Room seguirán enviando datos. 
-                // Opcionalmente, puedes setear un flag para mostrar un SnackBar de "Sin conexión".
+                _isOffline.value = true // Error de red, mostramos offline banner
             }
         }
+    }
+
+    fun dismissOfflineWarning() {
+        _isOffline.value = false
     }
 
     fun onSearchQueryChanged(query: String) { _searchQuery.value = query }

@@ -5,6 +5,9 @@ import com.uade.costaapp.data.mapper.PropertyMapper
 import com.uade.costaapp.data.remote.CostaAppApiService
 import com.uade.costaapp.domain.repository.PropertyRepository
 import com.uade.costaapp.data.local.entity.PropertyEntity
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FieldValue
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.CoroutineScope
@@ -15,7 +18,9 @@ import javax.inject.Inject
 class PropertyRepositoryImpl @Inject constructor(
     private val api: CostaAppApiService,
     private val dao: PropertyDao,
-    private val mapper: PropertyMapper
+    private val mapper: PropertyMapper,
+    private val auth: FirebaseAuth,
+    private val firestore: FirebaseFirestore
 ) : PropertyRepository {
 
     override fun getAllProperties(): Flow<List<PropertyEntity>> {
@@ -23,16 +28,10 @@ class PropertyRepositoryImpl @Inject constructor(
     }
 
     override suspend fun refreshProperties() {
-        val hasData = dao.getAllProperties().first().isNotEmpty()
-        if (hasData) {
-            // Ya hay datos, devolvemos control rápido y actualizamos en background silenciosamente
-            CoroutineScope(Dispatchers.IO).launch {
-                fetchFromNetworkAndUpdate()
-            }
-        } else {
-            // Sin datos, esperamos a la red
-            fetchFromNetworkAndUpdate()
-        }
+        // Ejecuta directo. Como la UI recolecta de Flow independientemente,
+        // esto actúa como "background silencioso" natural sin crear scopes desconectados
+        // que pierden la excepción.
+        fetchFromNetworkAndUpdate()
     }
 
     private suspend fun fetchFromNetworkAndUpdate() {
@@ -56,9 +55,11 @@ class PropertyRepositoryImpl @Inject constructor(
                     }
                     dao.upsertAll(entities)
                 }
+            } else {
+                throw Exception("Error de red")
             }
         } catch (e: Exception) {
-            // Falla de red: manejado silenciosamente, Room sigue sirviendo los datos offline
+            throw e // Propagamos para mostrar UI offline
         }
     }
 
@@ -76,6 +77,22 @@ class PropertyRepositoryImpl @Inject constructor(
 
     override suspend fun updateFavorite(id: String, isFavorite: Boolean) {
         dao.updateFavorite(id, isFavorite)
+
+        // Sync remoto con Firestore
+        auth.currentUser?.uid?.let { userId ->
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val userRef = firestore.collection("users").document(userId)
+                    if (isFavorite) {
+                        userRef.update("favorite_property_ids", FieldValue.arrayUnion(id))
+                    } else {
+                        userRef.update("favorite_property_ids", FieldValue.arrayRemove(id))
+                    }
+                } catch (e: Exception) {
+                    // Fallo silencioso offline
+                }
+            }
+        }
     }
 
     override fun getFavoritesCount(): Flow<Int> = dao.getFavoritesCount()

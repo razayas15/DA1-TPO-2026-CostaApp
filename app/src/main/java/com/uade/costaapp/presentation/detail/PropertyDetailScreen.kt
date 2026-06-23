@@ -150,10 +150,12 @@ fun PropertyDetailScreen(
                                     .background(Color.White.copy(alpha = 0.9f), CircleShape)
                                     .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                                        val clip = android.content.ClipData.newPlainText("CostaApp", "Mirá esta propiedad en CostaApp: https://costaapp.com/detail/${prop.id}")
-                                        clipboard.setPrimaryClip(clip)
-                                        Toast.makeText(context, "Enlace copiado al portapapeles", Toast.LENGTH_SHORT).show()
+                                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                            type = "text/plain"
+                                            putExtra(Intent.EXTRA_SUBJECT, "Propiedad en CostaApp")
+                                            putExtra(Intent.EXTRA_TEXT, "Mirá esta propiedad: ${prop.title} a USD ${prop.price}. https://costaapp.com/detail/${prop.id}")
+                                        }
+                                        context.startActivity(Intent.createChooser(shareIntent, "Compartir propiedad"))
                                     },
                                 contentAlignment = Alignment.Center
                             ) {
@@ -266,7 +268,8 @@ fun PropertyDetailScreen(
                     Button(
                         onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            val uri = Uri.parse("https://wa.me/5491112345678")
+                            val textMessage = java.net.URLEncoder.encode("Hola, me interesa la propiedad ${prop.title}.", "UTF-8")
+                            val uri = Uri.parse("https://wa.me/+5491100000000?text=$textMessage")
                             val intent = Intent(Intent.ACTION_VIEW, uri)
                             context.startActivity(intent)
                         },

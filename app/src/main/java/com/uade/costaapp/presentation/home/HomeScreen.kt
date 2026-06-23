@@ -20,6 +20,7 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,9 +66,23 @@ fun HomeScreen(
     val searchQuery by homeViewModel.searchQuery.collectAsStateWithLifecycle()
     val selectedOperation by homeViewModel.selectedOperation.collectAsStateWithLifecycle()
     val selectedSort by homeViewModel.selectedSort.collectAsStateWithLifecycle()
+    val isOffline by homeViewModel.isOffline.collectAsStateWithLifecycle()
+    
+    val snackbarHostState = remember { SnackbarHostState() }
+    
+    LaunchedEffect(isOffline) {
+        if (isOffline) {
+            snackbarHostState.showSnackbar(
+                message = "Mostrando datos sin conexión",
+                duration = SnackbarDuration.Short
+            )
+            homeViewModel.dismissOfflineWarning()
+        }
+    }
 
     Scaffold(
         modifier = Modifier.safeDrawingPadding(),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = { 
             HomeHeader(
                 onProfileClick = { 
