@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 class PropertyRepositoryImpl @Inject constructor(
@@ -41,16 +42,38 @@ class PropertyRepositoryImpl @Inject constructor(
                 response.body()?.let { dtos ->
                     val existingProps = dao.getAllProperties().first().associateBy { it.id }
                     
+                    // Sincronización al inicio con Firestore
+                    var firestoreFavorites = emptySet<String>()
+                    try {
+                        auth.currentUser?.uid?.let { userId ->
+                            val snapshot = firestore.collection("users").document(userId).get().await()
+                            if (snapshot.exists()) {
+                                val favs = snapshot.get("favorite_property_ids") as? List<String>
+                                if (favs != null) {
+                                    firestoreFavorites = favs.toSet()
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        // Falla silenciosa (modo offline o sin documento)
+                    }
+                    
                     val entities = dtos.map { dto ->
                         val mapped = mapper.dtoToEntity(dto)
                         val existing = existingProps[mapped.id]
+                        val isFav = if (firestoreFavorites.contains(mapped.id)) {
+                            true
+                        } else {
+                            existing?.isFavorite ?: false
+                        }
+                        
                         if (existing != null) {
                             mapped.copy(
-                                isFavorite = existing.isFavorite,
+                                isFavorite = isFav,
                                 lastViewedAt = existing.lastViewedAt
                             )
                         } else {
-                            mapped
+                            mapped.copy(isFavorite = isFav)
                         }
                     }
                     dao.upsertAll(entities)
@@ -78,8 +101,7 @@ class PropertyRepositoryImpl @Inject constructor(
     override suspend fun updateFavorite(id: String, isFavorite: Boolean) {
         dao.updateFavorite(id, isFavorite)
 
-        // Sync remoto con Firestore deshabilitado temporalmente para limpiar logcat
-        /*
+        // Sync remoto con Firestore
         auth.currentUser?.uid?.let { userId ->
             CoroutineScope(Dispatchers.IO).launch {
                 try {
@@ -94,7 +116,6 @@ class PropertyRepositoryImpl @Inject constructor(
                 }
             }
         }
-        */
     }
 
     override fun getFavoritesCount(): Flow<Int> = dao.getFavoritesCount()
