@@ -23,6 +23,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import com.uade.costaapp.presentation.home.BrandOrange
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -129,11 +130,15 @@ fun MapScreen(
                     position = CameraPosition.fromLatLngZoom(centerLocation, 12.5f)
                 }
                 
-                GoogleMap(
-                    modifier = Modifier.fillMaxSize(),
-                    cameraPositionState = cameraPositionState,
-                    onMapClick = { selectedProperty = null }
-                ) {
+                var isMapLoaded by remember { mutableStateOf(false) }
+
+                Box(modifier = Modifier.fillMaxSize()) {
+                    GoogleMap(
+                        modifier = Modifier.fillMaxSize(),
+                        cameraPositionState = cameraPositionState,
+                        onMapLoaded = { isMapLoaded = true },
+                        onMapClick = { selectedProperty = null }
+                    ) {
                     properties.forEach { property ->
                         val position = LatLng(property.latitude, property.longitude)
                         Marker(
@@ -146,6 +151,23 @@ fun MapScreen(
                         )
                     }
                 }
+
+                androidx.compose.animation.AnimatedVisibility(
+                    visible = !isMapLoaded,
+                    enter = androidx.compose.animation.fadeIn(),
+                    exit = androidx.compose.animation.fadeOut(),
+                    modifier = Modifier.align(Alignment.Center)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color(0xFFF8F9FA)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = BrandOrange)
+                    }
+                }
+            }
 
                 // Tarjeta Flotante
                 if (selectedProperty != null) {

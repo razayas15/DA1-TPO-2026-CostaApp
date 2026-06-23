@@ -66,7 +66,15 @@ fun PropertyDetailScreen(
     ) {
         property?.let { prop ->
             val images = if (!prop.images.isNullOrEmpty()) prop.images else listOf(prop.imageUrl)
-            val pagerState = rememberPagerState(pageCount = { images.size })
+            val savedPage = androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf(0) }
+            val pagerState = rememberPagerState(
+                initialPage = savedPage.value,
+                pageCount = { images.size }
+            )
+            
+            LaunchedEffect(pagerState.currentPage) {
+                savedPage.value = pagerState.currentPage
+            }
 
             Column(
                 modifier = Modifier

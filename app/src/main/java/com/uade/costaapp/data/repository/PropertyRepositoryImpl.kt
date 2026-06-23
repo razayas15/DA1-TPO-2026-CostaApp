@@ -7,6 +7,9 @@ import com.uade.costaapp.domain.repository.PropertyRepository
 import com.uade.costaapp.data.local.entity.PropertyEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class PropertyRepositoryImpl @Inject constructor(
@@ -20,14 +23,25 @@ class PropertyRepositoryImpl @Inject constructor(
     }
 
     override suspend fun refreshProperties() {
+        val hasData = dao.getAllProperties().first().isNotEmpty()
+        if (hasData) {
+            // Ya hay datos, devolvemos control rápido y actualizamos en background silenciosamente
+            CoroutineScope(Dispatchers.IO).launch {
+                fetchFromNetworkAndUpdate()
+            }
+        } else {
+            // Sin datos, esperamos a la red
+            fetchFromNetworkAndUpdate()
+        }
+    }
+
+    private suspend fun fetchFromNetworkAndUpdate() {
         try {
             val response = api.getProperties()
             if (response.isSuccessful) {
                 response.body()?.let { dtos ->
-                    // 1. Obtenemos el estado local actual para no pisar isFavorite y lastViewedAt
                     val existingProps = dao.getAllProperties().first().associateBy { it.id }
                     
-                    // 2. Mapeamos respetando el estado local
                     val entities = dtos.map { dto ->
                         val mapped = mapper.dtoToEntity(dto)
                         val existing = existingProps[mapped.id]
@@ -40,7 +54,6 @@ class PropertyRepositoryImpl @Inject constructor(
                             mapped
                         }
                     }
-                    // 3. UpsertAll puro en Room. Room es ahora el SSOT absoluto.
                     dao.upsertAll(entities)
                 }
             }
