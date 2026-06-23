@@ -12,6 +12,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
@@ -319,12 +320,12 @@ fun PropertyDetailScreen(
 
 @Composable
 fun AiAnalysisCard(aiState: AiState, onGenerateClick: () -> Unit) {
+    val textColor = if (isSystemInDarkTheme()) Color.White else Color.Black
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE8DFCD))
     ) {
@@ -363,19 +364,19 @@ fun AiAnalysisCard(aiState: AiState, onGenerateClick: () -> Unit) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             CircularProgressIndicator(modifier = Modifier.size(24.dp), color = BrandOrange, strokeWidth = 2.dp)
                             Spacer(modifier = Modifier.width(12.dp))
-                            Text("Analizando propiedad...", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("Analizando propiedad...", fontSize = 14.sp, color = textColor)
                         }
                     }
                     is AiState.Success -> {
                         Column {
-                            Text(state.data.summary, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(state.data.summary, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = textColor)
                             Spacer(modifier = Modifier.height(12.dp))
                             
                             state.data.positives.forEach { text ->
                                 Row(modifier = Modifier.padding(vertical = 6.dp), verticalAlignment = Alignment.Top) {
                                     Icon(Icons.Default.CheckCircle, contentDescription = "Positivo", tint = Color(0xFF4CAF50), modifier = Modifier.size(20.dp))
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text(text, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                    Text(text, fontSize = 14.sp, color = textColor)
                                 }
                             }
                         }
