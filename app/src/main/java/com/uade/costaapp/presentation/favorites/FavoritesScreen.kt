@@ -25,6 +25,8 @@ import com.uade.costaapp.presentation.home.PropertyCard
 fun FavoritesScreen(
     onNavigateBack: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
+    onNavigateToHome: () -> Unit = {},
+    onNavigateToMap: () -> Unit = {},
     viewModel: FavoritesViewModel = hiltViewModel()
 ) {
     val favorites by viewModel.favorites.collectAsStateWithLifecycle()
@@ -40,6 +42,14 @@ fun FavoritesScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFF8F9FA))
+            )
+        },
+        bottomBar = {
+            com.uade.costaapp.presentation.home.HomeBottomNavigation(
+                currentRoute = "favorites",
+                onNavigateToHome = onNavigateToHome,
+                onNavigateToMap = onNavigateToMap,
+                onNavigateToFavorites = {}
             )
         },
         containerColor = Color(0xFFF8F9FA)

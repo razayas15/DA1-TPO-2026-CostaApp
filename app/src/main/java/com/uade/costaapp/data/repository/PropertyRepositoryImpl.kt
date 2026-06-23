@@ -78,7 +78,8 @@ class PropertyRepositoryImpl @Inject constructor(
     override suspend fun updateFavorite(id: String, isFavorite: Boolean) {
         dao.updateFavorite(id, isFavorite)
 
-        // Sync remoto con Firestore
+        // Sync remoto con Firestore deshabilitado temporalmente para limpiar logcat
+        /*
         auth.currentUser?.uid?.let { userId ->
             CoroutineScope(Dispatchers.IO).launch {
                 try {
@@ -93,6 +94,7 @@ class PropertyRepositoryImpl @Inject constructor(
                 }
             }
         }
+        */
     }
 
     override fun getFavoritesCount(): Flow<Int> = dao.getFavoritesCount()

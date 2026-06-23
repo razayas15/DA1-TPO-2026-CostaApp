@@ -172,7 +172,11 @@ fun MapScreen(
                 }
 
                 Box(modifier = Modifier.fillMaxSize()) {
-                    if (showMap) {
+                    androidx.compose.animation.AnimatedVisibility(
+                        visible = showMap,
+                        enter = androidx.compose.animation.fadeIn(animationSpec = androidx.compose.animation.core.tween(800)),
+                        exit = androidx.compose.animation.fadeOut()
+                    ) {
                         GoogleMap(
                             modifier = Modifier.fillMaxSize(),
                             cameraPositionState = cameraPositionState,
@@ -180,15 +184,15 @@ fun MapScreen(
                             onMapClick = { selectedProperty = null }
                         ) {
                             properties.forEach { property ->
-                        val position = LatLng(property.latitude, property.longitude)
-                        Marker(
-                            state = MarkerState(position = position),
-                            title = property.title,
-                            onClick = {
-                                selectedProperty = property
-                                true // Consume event to prevent native info window
-                            }
-                        )
+                                val position = LatLng(property.latitude, property.longitude)
+                                Marker(
+                                    state = MarkerState(position = position),
+                                    title = property.title,
+                                    onClick = {
+                                        selectedProperty = property
+                                        true // Consume event to prevent native info window
+                                    }
+                                )
                             }
                         }
                     }
